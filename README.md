@@ -1,7 +1,7 @@
 # gotchet [![build](https://github.com/alexbakker/gotchet/actions/workflows/build.yml/badge.svg)](https://github.com/alexbakker/gotchet/actions/workflows/build.yml)
 
-__gotchet__ is a test report tool for Go. It can display test reports in a TUI
-and generate an HTML report.
+__gotchet__ is a test report tool for Go. It can display test results in a TUI
+and generate HTML reports.
 
 ## Usage
 
