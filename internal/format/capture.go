@@ -7,20 +7,34 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 )
 
 type Test struct {
-	Parent   *Test
-	Index    int
-	FullName string
-	Package  string
-	Output   bytes.Buffer
-	Done     bool
-	Passed   bool
-	Elapsed  time.Duration
-	Tests    map[string]*Test
+	Parent   *Test            `json:"parent"`
+	Index    int              `json:"index"`
+	FullName string           `json:"full_name"`
+	Package  string           `json:"package"`
+	Output   []*Output        `json:"output"`
+	Done     bool             `json:"done"`
+	Passed   bool             `json:"passed"`
+	Elapsed  time.Duration    `json:"elapsed"`
+	Tests    map[string]*Test `json:"tests"`
+}
+
+type TestCapture struct {
+	*Test
+	emulate     bool
+	testCount   int
+	outputCount int
+	ts          Time
+}
+
+type Output struct {
+	Index int    `json:"index"`
+	Text  string `json:"text"`
 }
 
 func (t *Test) Name() string {
@@ -32,11 +46,29 @@ func (t *Test) Name() string {
 	return parts[len(parts)-1]
 }
 
-type TestCapture struct {
-	*Test
-	emulate bool
-	count   int
-	ts      Time
+func (t *Test) FullOutput() *bytes.Buffer {
+	var outputs []*Output
+	outputs = append(outputs, t.Output...)
+
+	var merge func(t *Test)
+	merge = func(t *Test) {
+		for _, test := range t.Tests {
+			outputs = append(outputs, test.Output...)
+			merge(test)
+		}
+	}
+	merge(t)
+
+	sort.Slice(outputs, func(i, j int) bool {
+		return outputs[i].Index < outputs[j].Index
+	})
+
+	var buf bytes.Buffer
+	for _, output := range outputs {
+		buf.WriteString(output.Text)
+	}
+
+	return &buf
 }
 
 func (c *TestCapture) handleEvent(e *TestEvent) {
@@ -72,13 +104,15 @@ func (c *TestCapture) handleEvent(e *TestEvent) {
 		if test == nil {
 			panic(fmt.Sprintf("received output event for unstarted test: %s", e.Test))
 		}
-		test.Output.WriteString(e.Output)
+		test.Output = append(test.Output, &Output{Index: c.outputCount, Text: e.Output})
+		c.outputCount++
 	case TestActionFail:
 		if test == nil {
 			panic(fmt.Sprintf("received fail event for unstarted test: %s", e.Test))
 		}
 
 		test.Done = true
+		test.Elapsed = time.Duration(e.Elapsed)
 	case TestActionPass:
 		if test == nil {
 			panic(fmt.Sprintf("received pass event for unstarted test: %s", e.Test))
@@ -86,6 +120,7 @@ func (c *TestCapture) handleEvent(e *TestEvent) {
 
 		test.Done = true
 		test.Passed = true
+		test.Elapsed = time.Duration(e.Elapsed)
 	}
 
 	c.emulateDuration(e)
@@ -103,13 +138,12 @@ func (c *TestCapture) emulateDuration(e *TestEvent) {
 func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 	test = &Test{
 		//Parent:   parent,
-		Index:    c.count,
+		Index:    c.testCount,
 		FullName: e.Test,
 		Package:  e.Package,
-		Elapsed:  e.Duration(),
 		Tests:    make(map[string]*Test),
 	}
-	c.count++
+	c.testCount++
 	return
 }
 

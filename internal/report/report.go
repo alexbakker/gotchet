@@ -1,3 +1,4 @@
+//go:generate sh -c "yarn && yarn vite build"
 package report
 
 import (
@@ -12,14 +13,13 @@ import (
 	"github.com/alexbakker/gotchet/internal/format"
 )
 
-//go:embed template.html
+//go:embed dist/index.html
 var tmplStr string
-
 var tmpl *template.Template
 
 func init() {
 	var err error
-	tmpl, err = template.New("report").Parse(tmplStr)
+	tmpl, err = template.New("report").Delims("#[", "]#").Parse(tmplStr)
 	if err != nil {
 		panic(err)
 	}

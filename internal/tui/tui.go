@@ -120,7 +120,7 @@ func (m *Model) setCurrentTest(t *format.Test) {
 	viewPort := viewport.New(width/2, height)
 	m.viewPort = viewPort
 	if len(m.tests) > 0 {
-		m.setContent(m.tests[0].Output.String())
+		m.setContent(m.tests[0].FullOutput().String())
 	} else {
 		m.setContent("")
 	}
@@ -178,7 +178,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	newIndex := m.list.Index()
 	if curIndex != newIndex {
-		m.setContent(m.tests[newIndex].Output.String())
+		m.setContent(m.tests[newIndex].FullOutput().String())
 	}
 
 	return m, cmd

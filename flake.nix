@@ -25,6 +25,9 @@
         hardeningDisable = [ "fortify" ];
         buildInputs = [
           go
+
+          nodejs-18_x
+          yarn
         ];
       };
     }
