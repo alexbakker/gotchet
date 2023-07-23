@@ -21,8 +21,8 @@
     return parts[parts.length - 1]
   })
 
-  const tests = computed(() =>
-    Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))
+  /*const tests = computed(() =>
+    Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))*/
 
   const fullOutput = computed(() => {
     const outputs: Array<TestOutput> = Object.assign([], props.test.output)

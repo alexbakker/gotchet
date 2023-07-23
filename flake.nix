@@ -17,8 +17,32 @@
           name = "gotchet";
           src = ./.;
 
+          patchPhase = ''
+            mkdir -p internal/report/dist
+            cp "${gotchet-frontend}/index.html" internal/report/dist
+          '';
+
           subPackages = ["cmd/gotchet"];
           vendorSha256 = "sha256-Ia9s5bCVdcG6QijEcA3h5IkEVPsLf/kzV1UBElk1lLQ=";
+        };
+        gotchet-frontend = with pkgs; mkYarnPackage rec {
+          name = "gotchet-frontend";
+          src = ./internal/report;
+          packageJSON = src + "/package.json";
+          yarnLock = src + "/yarn.lock";
+
+          buildPhase = ''
+            export HOME=$(mktemp -d)
+            yarn --offline build
+          '';
+
+          installPhase = ''
+            set -x
+            mkdir -p $out
+            cp -r deps/${name}/dist/* $out
+          '';
+
+          doDist = false;
         };
       };
       devShells.default = with pkgs; mkShell {
