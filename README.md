@@ -5,7 +5,8 @@ and generate HTML reports.
 
 ## Usage
 
-To get the right output format, use onf of the following commands:
+Use one of the following commands to get the right
+[test2json](https://pkg.go.dev/cmd/test2json) output from your Go tests:
 
 For the ``go test`` command:
 
@@ -13,7 +14,7 @@ For the ``go test`` command:
 go test -json -v=test2json ./...
 ```
 
-For test binaries: https://pkg.go.dev/cmd/test2json
+For test binaries:
 
 ```
 go tool test2json -t -p pkgname ./test-binary -test.v=test2json
