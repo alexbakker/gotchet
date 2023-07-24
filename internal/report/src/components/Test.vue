@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { computed, reactive } from 'vue'
   import { Test, TestOutput, testName } from '../data/Test'
+  import ElapsedComponent from './Elapsed.vue'
   import {
     ChevronDownIcon,
     CheckCircleIcon,
@@ -46,7 +47,8 @@
         <XCircleIcon v-else="test.done" class="h-6 w-6 text-red-700" />
       </div>
       <span>{{ name }}</span>
-      <ChevronDownIcon class="h-6 w-6 ms-auto self-end" :class="{ 'rotate-180': !state.collapsed }" />
+      <ElapsedComponent :showIcon="false" :elapsed="test.elapsed" class="font-normal text-gray-500 ms-auto" />
+      <ChevronDownIcon class="h-6 w-6 ms-2 self-end" :class="{ 'rotate-180': !state.collapsed }" />
     </div>
     <div v-if="!state.collapsed" class="log-container px-2 py-2 mt-2 overflow-y-scroll self-stretch bg-gr">
       <code class="log" v-for="output in fullOutput">{{ output.text }}</code>

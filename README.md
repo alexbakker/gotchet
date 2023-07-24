@@ -5,6 +5,8 @@ and generate HTML reports. Its primary purpose is to make it a bit easier to
 analyze results of large long-running test suites that make use of subtests and
 have lots of log output.
 
+Current status: __WIP__.
+
 ## Usage
 
 Use one of the following commands to get the right
