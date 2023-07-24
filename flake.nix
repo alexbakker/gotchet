@@ -17,6 +17,8 @@
           name = "gotchet";
           src = ./.;
 
+          CGO_ENABLED = 0;
+
           patchPhase = ''
             mkdir -p internal/report/dist
             cp "${gotchet-frontend}/index.html" internal/report/dist
