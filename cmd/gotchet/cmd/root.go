@@ -32,7 +32,6 @@ func init() {
 func startCapture() {
 	r := os.Stdin
 	if rootFlags.Input != "-" {
-		var err error
 		file, err := os.Open(rootFlags.Input)
 		if err != nil {
 			exitWithError(fmt.Sprintf("Failed to open input: %v", err))
