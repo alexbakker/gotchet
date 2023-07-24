@@ -13,7 +13,7 @@ import (
 )
 
 type Test struct {
-	Parent   *Test            `json:"parent"`
+	Parent   *Test            `json:"-"`
 	Index    int              `json:"index"`
 	FullName string           `json:"full_name"`
 	Package  string           `json:"package"`
@@ -138,7 +138,7 @@ func (c *TestCapture) emulateDuration(e *TestEvent) {
 
 func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 	test = &Test{
-		//Parent:   parent,
+		Parent:   parent,
 		Index:    c.testCount,
 		FullName: e.Test,
 		Package:  e.Package,
