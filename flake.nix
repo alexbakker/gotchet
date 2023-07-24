@@ -37,7 +37,6 @@
           '';
 
           installPhase = ''
-            set -x
             mkdir -p $out
             cp -r deps/${name}/dist/* $out
           '';

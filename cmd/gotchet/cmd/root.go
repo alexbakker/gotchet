@@ -35,7 +35,8 @@ func startCapture() {
 		var err error
 		file, err := os.Open(rootFlags.Input)
 		if err != nil {
-			panic(err)
+			exitWithError(fmt.Sprintf("Failed to open input: %v", err))
+			return
 		}
 		defer file.Close()
 		r = file
@@ -44,7 +45,8 @@ func startCapture() {
 	var err error
 	capture, err = format.Read(r, rootFlags.Emulate)
 	if err != nil {
-		panic(err)
+		exitWithError(fmt.Sprintf("Failed to read test output: %v", err))
+		return
 	}
 }
 

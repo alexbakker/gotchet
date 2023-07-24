@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/alexbakker/gotchet/internal/report"
@@ -22,6 +23,6 @@ func init() {
 
 func startGen(cmd *cobra.Command, args []string) {
 	if err := report.Render(capture, os.Stdout); err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Failed to render report: %v", err)
 	}
 }

@@ -71,7 +71,7 @@ func (t *Test) FullOutput() *bytes.Buffer {
 	return &buf
 }
 
-func (c *TestCapture) handleEvent(e *TestEvent) {
+func (c *TestCapture) handleEvent(e *TestEvent) error {
 	test := c.Test
 	if test != nil {
 		for _, name := range splitTestName(e.Test) {
@@ -87,35 +87,35 @@ func (c *TestCapture) handleEvent(e *TestEvent) {
 	switch e.Action {
 	case TestActionStart:
 		if c.Test != nil {
-			panic("received second binary start event")
+			return errors.New("received second binary start event")
 		}
 		c.Test = c.newTest(nil, e)
 	case TestActionRun:
 		if test == nil {
-			panic(fmt.Sprintf("no parent for test: %s", e.Test))
+			return fmt.Errorf("no parent for test: %s", e.Test)
 		}
 		if test.FullName == e.Test {
-			panic(fmt.Sprintf("received second run event for test: %s", e.Test))
+			return fmt.Errorf("received second run event for test: %s", e.Test)
 		}
 
 		subTest := c.newTest(test, e)
 		test.Tests[subTest.Name()] = subTest
 	case TestActionOutput:
 		if test == nil {
-			panic(fmt.Sprintf("received output event for unstarted test: %s", e.Test))
+			return fmt.Errorf("received output event for unstarted test: %s", e.Test)
 		}
 		test.Output = append(test.Output, &Output{Index: c.outputCount, Text: e.Output})
 		c.outputCount++
 	case TestActionFail:
 		if test == nil {
-			panic(fmt.Sprintf("received fail event for unstarted test: %s", e.Test))
+			return fmt.Errorf("received fail event for unstarted test: %s", e.Test)
 		}
 
 		test.Done = true
 		test.Elapsed = time.Duration(e.Elapsed)
 	case TestActionPass:
 		if test == nil {
-			panic(fmt.Sprintf("received pass event for unstarted test: %s", e.Test))
+			return fmt.Errorf("received pass event for unstarted test: %s", e.Test)
 		}
 
 		test.Done = true
@@ -125,6 +125,7 @@ func (c *TestCapture) handleEvent(e *TestEvent) {
 
 	c.emulateDuration(e)
 	c.ts = e.Time
+	return nil
 }
 
 func (c *TestCapture) emulateDuration(e *TestEvent) {
@@ -162,7 +163,9 @@ func Read(r io.Reader, emulate bool) (*TestCapture, error) {
 			return nil, err
 		}
 
-		c.handleEvent(event)
+		if err := c.handleEvent(event); err != nil {
+			return nil, fmt.Errorf("handle test event: %w", err)
+		}
 	}
 }
 
