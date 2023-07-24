@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, reactive } from 'vue'
-  import { Test, TestOutput } from '../data/Test'
+  import { Test, TestOutput, testName } from '../data/Test'
   import {
     ChevronDownIcon,
     CheckCircleIcon,
@@ -16,10 +16,7 @@
     collapsed: true
   })
 
-  const name = computed(() => {
-    const parts = props.test.full_name.split("/")
-    return parts[parts.length - 1]
-  })
+  const name = computed(() => testName(props.test))
 
   /*const tests = computed(() =>
     Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))*/
@@ -41,8 +38,8 @@
 </script>
 
 <template>
-  <div class="flex flex-col p-2" :class="{ 'expanded': !state.collapsed }">
-    <div @click="state.collapsed = !state.collapsed" class="flex items-center cursor-pointer">
+  <div class="flex flex-col" :class="{ 'expanded': !state.collapsed }">
+    <div @click="state.collapsed = !state.collapsed" class="flex items-center cursor-pointer p-2">
       <div class="me-1">
         <CheckCircleIcon v-if="test.passed" class="h-6 w-6 text-green-700" />
         <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-yellow-700" />

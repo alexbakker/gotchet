@@ -13,3 +13,8 @@ export interface Test {
   elapsed: number
   tests: Record<string, Test>;
 }
+
+export function testName(t: Test): string {
+  const parts = t.full_name.split("/")
+  return parts[parts.length - 1]
+}

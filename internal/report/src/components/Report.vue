@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { onMounted, reactive, computed } from 'vue'
   import TestComponent from './Test.vue'
-  import { Test } from '../data/Test'
+  import { Test, testName } from '../data/Test'
   import { ClockIcon } from '@heroicons/vue/24/solid';
   import formatDuration from 'date-fns/formatDuration'
   import intervalToDuration from 'date-fns/intervalToDuration'
@@ -9,23 +9,25 @@
   const state = reactive<{
     title: string,
     test: Test | undefined,
-    isLoading: boolean
+    isLoading: boolean,
+    filter: {
+      testName: string
+    }
   }>({
     title: "Go Test Report",
     test: undefined,
-    isLoading: true
+    isLoading: true,
+    filter: {
+      testName: ""
+    }
   });
 
   const stats = computed(() => {
-    if (!state.test) {
-      return null;
-    }
-
-    const tests = Object.values(state.test.tests)
+    const shownTests = tests.value;
     return {
-      total: tests.length,
-      passed: tests.filter((t) => t.done && t.passed).length,
-      failed: tests.filter((t) => t.done && !t.passed).length
+      total: shownTests.length,
+      passed: shownTests.filter((t) => t.done && t.passed).length,
+      failed: shownTests.filter((t) => t.done && !t.passed).length
     }
   })
 
@@ -50,6 +52,18 @@
       locale: shortEnLocale,
       delimiter: ""
     })
+  })
+
+  const tests = computed(() => {
+    if (!state.test) {
+      return []
+    }
+
+    return Object.values(state.test.tests)
+      .filter((t) => {
+        return testName(t).toLowerCase().includes(state.filter.testName.toLowerCase())
+      })
+      .sort((t1, t2) => t1.index - t2.index)
   })
 
   onMounted(() => {
@@ -123,9 +137,11 @@
         <span>{{ stats?.total }}</span>
       </div>
     </div>
-
-    <table v-if="state.test" class="w-full table-fixed border-collapse">
-      <tr v-for="test in state.test.tests" :key="test.index" class="border-solid border border-neutral-800 rounded-md">
+    <div class="flex items-center">
+      <input v-model="state.filter.testName" type="text">
+    </div>
+    <table v-if="tests.length > 0" class="w-full table-fixed border-collapse">
+      <tr v-for="test in tests" :key="test.index" class="border-solid border border-neutral-800 rounded-md">
         <TestComponent :test="test" />
       </tr>
     </table>
