@@ -3,18 +3,19 @@
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
+    flockenzeit.url = "github:balsoft/Flockenzeit";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, flake-utils, nixpkgs }:
+  outputs = { self, flake-utils, flockenzeit, nixpkgs }:
   flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
     in rec {
       packages = flake-utils.lib.flattenTree rec {
-        default = gotchet;
-        gotchet = with pkgs; buildGoModule rec {
-          name = "gotchet";
+        default = gotchet-cli;
+        gotchet-cli = with pkgs; buildGoModule rec {
+          name = "gotchet-cli";
           src = ./.;
 
           CGO_ENABLED = 0;
@@ -26,6 +27,19 @@
 
           subPackages = ["cmd/gotchet"];
           vendorSha256 = "sha256-Ia9s5bCVdcG6QijEcA3h5IkEVPsLf/kzV1UBElk1lLQ=";
+        };
+        gotchet-docker = with pkgs; dockerTools.buildImage {
+          name = "gotchet";
+          tag = "latest";
+          created = flockenzeit.lib.ISO-8601 self.lastModified;
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [ gotchet-cli ];
+            pathsToLink = [ "/bin" ];
+          };
+          config = {
+            Cmd = [ "/bin/gotchet" ];
+          };
         };
         gotchet-frontend = with pkgs; mkYarnPackage rec {
           name = "gotchet-frontend";
