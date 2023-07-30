@@ -46,7 +46,7 @@
             pathsToLink = [ "/bin" ];
           };
           config = {
-            Cmd = [ "/bin/gotchet" ];
+            Entrypoint = [ "/bin/gotchet" ];
           };
         };
         gotchet-frontend = with pkgs; mkYarnPackage rec {
