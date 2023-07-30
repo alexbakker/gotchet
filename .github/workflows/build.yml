@@ -18,7 +18,6 @@ jobs:
           nix build --print-build-logs
           ./result/bin/gotchet version
       - name: Check version number
-        id: tag
         if: startsWith(github.ref_name, 'v')
         run: |
           if ! ./result/bin/gotchet version | grep -q '${{ github.ref_name }}'; then
