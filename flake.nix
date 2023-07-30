@@ -27,10 +27,12 @@
             cp "${gotchet-frontend}/index.html" internal/report/dist
           '';
 
-          ldflags = [
-            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionNumber=${version}"
-            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionRevision=${self.shortRev or "dirty"}"
-            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionRevisionTime=${toString self.lastModified}"
+          ldflags = let 
+            pkgPath = "github.com/alexbakker/gotchet/cmd/gotchet/cmd";
+          in [
+            "-X ${pkgPath}.versionNumber=${version}"
+            "-X ${pkgPath}.versionRevision=${self.shortRev or "dirty"}"
+            "-X ${pkgPath}.versionRevisionTime=${toString self.lastModified}"
           ];
 
           subPackages = ["cmd/gotchet"];
