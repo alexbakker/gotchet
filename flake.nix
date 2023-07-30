@@ -40,11 +40,7 @@
           name = "gotchet";
           tag = "latest";
           created = flockenzeit.lib.ISO-8601 self.lastModified;
-          copyToRoot = pkgs.buildEnv {
-            name = "image-root";
-            paths = [ gotchet-cli ];
-            pathsToLink = [ "/bin" ];
-          };
+          copyToRoot = gotchet-cli;
           config = {
             Entrypoint = [ "/bin/gotchet" ];
           };
