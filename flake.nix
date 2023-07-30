@@ -11,11 +11,13 @@
   flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
+      gotchetVersion = "0.1.0";
     in rec {
       packages = flake-utils.lib.flattenTree rec {
         default = gotchet-cli;
         gotchet-cli = with pkgs; buildGoModule rec {
-          name = "gotchet-cli";
+          pname = "gotchet-cli";
+          version = gotchetVersion;
           src = ./.;
 
           CGO_ENABLED = 0;
@@ -24,6 +26,12 @@
             mkdir -p internal/report/dist
             cp "${gotchet-frontend}/index.html" internal/report/dist
           '';
+
+          ldflags = [
+            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionNumber=${version}"
+            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionRevision=${self.shortRev or "dirty"}"
+            "-X github.com/alexbakker/gotchet/cmd/gotchet/cmd.versionRevisionTime=${toString self.lastModified}"
+          ];
 
           subPackages = ["cmd/gotchet"];
           vendorSha256 = "sha256-Ia9s5bCVdcG6QijEcA3h5IkEVPsLf/kzV1UBElk1lLQ=";
@@ -58,6 +66,14 @@
           '';
 
           doDist = false;
+        };
+      };
+      apps = rec {
+        default = gotchet;
+        gotchet = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.gotchet-cli;
+          name = "gotchet";
+          exePath = "/bin/gotchet";
         };
       };
       devShells.default = with pkgs; mkShell {

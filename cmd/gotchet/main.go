@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/alexbakker/gotchet/cmd/gotchet/cmd"
@@ -9,6 +8,6 @@ import (
 
 func main() {
 	if err := cmd.Root.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err.Error())
+		os.Exit(1)
 	}
 }
