@@ -27,7 +27,7 @@ func init() {
 }
 
 func startRoot(cmd *cobra.Command, args []string) {
-	capture := runCapture()
+	capture := runCapture(rootFlags.Input, rootFlags.Emulate)
 
 	p := tea.NewProgram(tui.New(capture),
 		tea.WithMouseCellMotion(),

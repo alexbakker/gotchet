@@ -12,10 +12,10 @@ func exitWithError(s string) {
 	os.Exit(1)
 }
 
-func runCapture() *format.TestCapture {
+func runCapture(inputFile string, emulate bool) *format.TestCapture {
 	r := os.Stdin
-	if rootFlags.Input != "-" {
-		file, err := os.Open(rootFlags.Input)
+	if inputFile != "-" {
+		file, err := os.Open(inputFile)
 		if err != nil {
 			exitWithError(fmt.Sprintf("failed to open input: %v", err))
 			return nil
@@ -24,7 +24,7 @@ func runCapture() *format.TestCapture {
 		r = file
 	}
 
-	capture, err := format.Read(r, rootFlags.Emulate)
+	capture, err := format.Read(r, emulate)
 	if err != nil {
 		exitWithError(fmt.Sprintf("failed to read test output: %v", err))
 		return nil

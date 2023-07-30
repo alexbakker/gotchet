@@ -28,11 +28,11 @@ func init() {
 }
 
 func startGen(cmd *cobra.Command, args []string) {
-	capture := runCapture()
+	capture := runCapture(genFlags.Input, false)
 
 	w := os.Stdout
 	if genFlags.Output != "-" {
-		file, err := os.Open(genFlags.Output)
+		file, err := os.Create(genFlags.Output)
 		if err != nil {
 			exitWithError(fmt.Sprintf("failed to open output: %v", err))
 			return
