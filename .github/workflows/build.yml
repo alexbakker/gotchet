@@ -1,5 +1,7 @@
 name: build
 on: [pull_request, push]
+env:
+  DOCKER_REPO: docker.io/alexanderbakker/gotchet
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +17,35 @@ jobs:
         run: |
           nix build --print-build-logs
           ./result/bin/gotchet version
+      - name: Check version number
+        id: tag
+        if: startsWith(github.ref_name, 'v')
+        run: |
+          if ! ./result/bin/gotchet version | grep -q '${{ github.ref_name }}'; then
+            echo "Version information doesn't match"
+            exit 1
+          fi
       - name: Build docker image
         run: |
           nix build .#gotchet-docker --print-build-logs
           podman load -i ./result
+      - name: Tag Docker image
+        id: tag
+        if: startsWith(github.ref_name, 'v')
+        run: |
+          tag=$(echo "${{github.ref_name}}" | cut -c2-)
+          podman tag localhost/gotchet:latest $DOCKER_REPO:latest
+          podman tag localhost/gotchet:latest $DOCKER_REPO:${tag}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Log into Docker Hub
+        if: startsWith(github.ref_name, 'v')
+        uses: redhat-actions/podman-login@a7d8d3e6447c1d7ea679172c7d10c7723d49dbf4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Push to Docker Hub
+        if: startsWith(github.ref_name, 'v')
+        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df
+        with:
+          tags: ${{ env.DOCKER_REPO }}:latest ${{ env.DOCKER_REPO }}:${{ steps.tag.outputs.tag }}
