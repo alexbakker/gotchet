@@ -85,8 +85,8 @@ func (m *Model) setContent(s string) {
 func (m *Model) setCurrentTest(t *format.Test) {
 	m.ct = t
 	m.tests = maps.Values(m.ct.Tests)
-	slices.SortFunc(m.tests, func(a *format.Test, b *format.Test) bool {
-		return a.Index < b.Index
+	slices.SortFunc(m.tests, func(a *format.Test, b *format.Test) int {
+		return a.Index - b.Index
 	})
 
 	width, height := m.getSize()

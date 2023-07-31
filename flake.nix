@@ -36,7 +36,7 @@
           ];
 
           subPackages = ["cmd/gotchet"];
-          vendorSha256 = "sha256-Ia9s5bCVdcG6QijEcA3h5IkEVPsLf/kzV1UBElk1lLQ=";
+          vendorSha256 = "sha256-w+R+iCnm8q5TjCS6Ov/M8kOP4sVJCBWCeKCq6sxNl+w=";
         };
         gotchet-docker = with pkgs; dockerTools.buildImage {
           name = "gotchet";
