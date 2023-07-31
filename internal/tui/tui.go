@@ -58,7 +58,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		text = selectedItemStyle.Render(text)
 	}
 
-	fmt.Fprint(w, fmt.Sprintf("%s %s", item.Status, text))
+	fmt.Fprintf(w, "%s %s", item.Status, text)
 }
 
 func New(c *format.TestCapture) *Model {
