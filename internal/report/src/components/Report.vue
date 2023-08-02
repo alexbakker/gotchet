@@ -6,7 +6,8 @@
 
   const state = reactive<{
     title: string,
-    test: TestResult | undefined,
+    rootTest: TestResult | null
+    test: TestResult | null,
     isLoading: boolean,
     filter: {
       testName: string
@@ -15,7 +16,8 @@
     }
   }>({
     title: "Go Test Report",
-    test: undefined,
+    rootTest: null,
+    test: null,
     isLoading: true,
     filter: {
       testName: "",
@@ -66,8 +68,9 @@
     state.title = title
   }
 
-  function setParentTest(test: TestResult) {
+  function setTest(rootTest: TestResult, test: TestResult) {
     setTitle(test.full_name)
+    state.rootTest = rootTest
     state.test = test
   }
 
@@ -100,7 +103,7 @@
         while (test.tests && Object.keys(test.tests).length == 1) {
           test = Object.values(test.tests)[0];
         }
-        setParentTest(test);
+        setTest(rootTest, test);
         state.isLoading = false
       }
     })
@@ -141,7 +144,15 @@
       <div class="w-full mb-2">
         <Test v-for="test in tests" :key="test.index" :test="test" :depth="0" />
       </div>
-      <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
+      <div class="flex items-start">
+        <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
+        <div class="ms-auto">
+          <p class="text-gray-500" v-if="state.test">Test run started: {{
+            state.test.started_at }}</p>
+          <p class="text-gray-500 mb-5" v-if="state.rootTest && state.rootTest.capture_started_at">Report generated: {{
+            state.rootTest.capture_started_at }}</p>
+        </div>
+      </div>
     </div>
     <p v-else>Empty report!</p>
   </template>

@@ -47,6 +47,10 @@ func (t *Time) UnmarshalText(text []byte) (err error) {
 	return nil
 }
 
+func (t Time) MarshalText() ([]byte, error) {
+	return []byte(time.Time(t).Format(time.RFC3339)), nil
+}
+
 func (e *TestEvent) Duration() time.Duration {
 	return time.Duration(e.Elapsed * float64(time.Second))
 }

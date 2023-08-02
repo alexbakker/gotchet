@@ -13,23 +13,27 @@ import (
 )
 
 type Test struct {
-	Parent   *Test            `json:"-"`
-	Index    int              `json:"index"`
-	FullName string           `json:"full_name"`
-	Package  string           `json:"package"`
-	Output   []*Output        `json:"output"`
-	Done     bool             `json:"done"`
-	Passed   bool             `json:"passed"`
-	Elapsed  time.Duration    `json:"elapsed"`
-	Tests    map[string]*Test `json:"tests"`
+	Parent    *Test            `json:"-"`
+	Index     int              `json:"index"`
+	StartedAt Time             `json:"started_at"`
+	EndedAt   Time             `json:"ended_at"`
+	FullName  string           `json:"full_name"`
+	Package   string           `json:"package"`
+	Output    []*Output        `json:"output"`
+	Done      bool             `json:"done"`
+	Passed    bool             `json:"passed"`
+	Elapsed   time.Duration    `json:"elapsed"`
+	Tests     map[string]*Test `json:"tests"`
 }
 
 type TestCapture struct {
 	*Test
-	emulate     bool
-	testCount   int
-	outputCount int
-	ts          Time
+	CaptureStartedAt Time `json:"capture_started_at"`
+	CaptureEndedAt   Time `json:"capture_ended_at"`
+	emulate          bool
+	testCount        int
+	outputCount      int
+	ts               Time
 }
 
 type Output struct {
@@ -113,6 +117,7 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 
 		test.Done = true
 		test.Elapsed = time.Duration(e.Elapsed)
+		test.EndedAt = e.Time
 	case TestActionPass:
 		if test == nil {
 			return fmt.Errorf("received pass event for unstarted test: %s", e.Test)
@@ -121,6 +126,7 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 		test.Done = true
 		test.Passed = true
 		test.Elapsed = time.Duration(e.Elapsed)
+		test.EndedAt = e.Time
 	}
 
 	c.emulateDuration(e)
@@ -138,11 +144,12 @@ func (c *TestCapture) emulateDuration(e *TestEvent) {
 
 func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 	test = &Test{
-		Parent:   parent,
-		Index:    c.testCount,
-		FullName: e.Test,
-		Package:  e.Package,
-		Tests:    make(map[string]*Test),
+		Parent:    parent,
+		Index:     c.testCount,
+		StartedAt: e.Time,
+		FullName:  e.Test,
+		Package:   e.Package,
+		Tests:     make(map[string]*Test),
 	}
 	c.testCount++
 	return
@@ -151,13 +158,14 @@ func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 // TODO: When reading from stdin, make this write to disk and seek instead of
 // keeping everything in-memory
 func Read(r io.Reader, emulate bool) (*TestCapture, error) {
-	var c TestCapture
+	c := TestCapture{CaptureStartedAt: Time(time.Now())}
 
 	br := bufio.NewReader(r)
 	for {
 		event, err := readEvent(br)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				c.CaptureEndedAt = Time(time.Now())
 				return &c, nil
 			}
 			return nil, err
