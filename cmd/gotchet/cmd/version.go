@@ -32,7 +32,7 @@ func startVersion(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Printf("v%s-%s", versionNumber, versionRevision)
+	fmt.Printf("gotchet v%s-%s", versionNumber, versionRevision)
 	if ts := parseRevisionTime(versionRevisionTime); ts != "" {
 		fmt.Printf(" (%s)", ts)
 	}

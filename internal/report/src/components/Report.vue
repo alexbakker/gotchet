@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import { onMounted, reactive, computed } from 'vue'
-  import TestComponent from './Test.vue'
-  import ElapsedComponent from './Elapsed.vue'
-  import { Test, testName } from '../data/Test'
+  import Test from './Test.vue'
+  import Elapsed from './Elapsed.vue'
+  import { TestResult, testName } from '../data/Test'
 
   const state = reactive<{
     title: string,
-    test: Test | undefined,
+    test: TestResult | undefined,
     isLoading: boolean,
     filter: {
       testName: string
@@ -47,7 +47,7 @@
     loadReport()
   })
 
-  function isTestShown(t: Test): boolean {
+  function isTestShown(t: TestResult): boolean {
     if (t.done) {
       if (t.passed && !state.filter.showPassed) {
         return false;
@@ -66,7 +66,7 @@
     state.title = title
   }
 
-  function setParentTest(test: Test) {
+  function setParentTest(test: TestResult) {
     setTitle(test.full_name)
     state.test = test
   }
@@ -93,7 +93,7 @@
   function loadReport() {
     state.isLoading = true
     readData(text => {
-      let rootTest: Test = JSON.parse(text);
+      let rootTest: TestResult = JSON.parse(text);
       if (rootTest) {
         // Go deep until there's more than one child test
         let test = rootTest;
@@ -119,7 +119,7 @@
   <template v-if="!state.isLoading">
     <div class="flex items-center text-3xl font-bold mb-5">
       <h1>{{ state.title }}</h1>
-      <ElapsedComponent :showIcon="true" :elapsed="state.test?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
+      <Elapsed :showIcon="true" :elapsed="state.test?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
       <div class="ms-auto">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /
         <span>{{ stats?.total }}</span>
@@ -138,11 +138,9 @@
         placeholder="filter">
     </div>
     <div v-if="tests.length > 0">
-      <table class="w-full table-fixed border-collapse mb-2">
-        <tr v-for="test in tests" :key="test.index" class="border-solid border border-neutral-800 rounded-md">
-          <TestComponent :test="test" />
-        </tr>
-      </table>
+      <div class="w-full mb-2">
+        <Test v-for="test in tests" :key="test.index" :test="test" :depth="0" />
+      </div>
       <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
     </div>
     <p v-else>Empty report!</p>

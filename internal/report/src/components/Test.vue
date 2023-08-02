@@ -1,28 +1,41 @@
 <script setup lang="ts">
   import { computed, reactive } from 'vue'
-  import { Test, TestOutput, testName } from '../data/Test'
-  import ElapsedComponent from './Elapsed.vue'
+  import { TestResult, TestOutput, testName } from '../data/Test'
+  import Elapsed from './Elapsed.vue'
   import {
     ChevronDownIcon,
     CheckCircleIcon,
     QuestionMarkCircleIcon,
-    XCircleIcon
+    XCircleIcon,
   } from '@heroicons/vue/24/solid'
+  import {
+    DocumentTextIcon
+  } from '@heroicons/vue/24/outline'
 
   const props = defineProps<{
-    test: Test
+    test: TestResult
+    depth: number
   }>()
 
+  const hasChildTests = computed(() => {
+    return Object.keys(props.test.tests).length > 0
+  })
+
   const state = reactive({
-    collapsed: true
+    collapsed: true,
+    logsCollapsed: true
   })
 
   const name = computed(() => testName(props.test))
 
-  /*const tests = computed(() =>
-    Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))*/
+  const tests = computed(() =>
+    Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))
 
-  const fullOutput = computed(() => {
+  const showLogsToggle = computed(() => {
+    return !state.collapsed && hasChildTests.value
+  })
+
+  /*const fullOutput = computed(() => {
     const outputs: Array<TestOutput> = Object.assign([], props.test.output)
 
     const merge = (t: Test) => {
@@ -35,32 +48,72 @@
 
     outputs.sort((o1, o2) => o1.index - o2.index)
     return outputs
+  })*/
+
+  const selfOutput = computed(() => {
+    const outputs: Array<TestOutput> = Object.assign([], props.test.output)
+    outputs.sort((o1, o2) => o1.index - o2.index)
+    return outputs
   })
+
+  const indentStyle = reactive({
+    'margin-left': (props.depth * 20) + 'px'
+  })
+
+  function toggleCollapse() {
+    const collapse = !state.collapsed
+    state.collapsed = collapse
+    if (collapse) {
+      state.logsCollapsed = true
+    } else if (hasChildTests.value) {
+      state.logsCollapsed = true
+    } else {
+      state.logsCollapsed = false
+    }
+  }
+
+  function toggleLogsCollapse() {
+    const collapse = !state.logsCollapsed
+    if (!collapse && state.collapsed) {
+      state.collapsed = false
+    }
+    if (collapse && !hasChildTests.value) {
+      state.collapsed = true
+    }
+    state.logsCollapsed = collapse
+  }
 </script>
 
 <template>
-  <div class="flex flex-col" :class="{ 'expanded': !state.collapsed }">
-    <div @click="state.collapsed = !state.collapsed" class="flex items-center cursor-pointer p-2">
-      <div class="me-1">
-        <CheckCircleIcon v-if="test.passed" class="h-6 w-6 text-green-700" />
-        <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-yellow-700" />
-        <XCircleIcon v-else="test.done" class="h-6 w-6 text-red-700" />
+  <div class="-mb-px -ms-px -me-px border-solid border border-neutral-800">
+    <div class="flex flex-col">
+      <div class="flex items-center" :style="indentStyle">
+        <div class="flex items-center cursor-pointer p-2 grow" @click="toggleCollapse()">
+          <div class="me-1">
+            <CheckCircleIcon v-if="test.passed" class="h-6 w-6 text-green-700" />
+            <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-yellow-700" />
+            <XCircleIcon v-else="test.done" class="h-6 w-6 text-red-700" />
+          </div>
+          <span>{{ name }}</span>
+        </div>
+        <button v-show="showLogsToggle" @click="toggleLogsCollapse()" class="hover:bg-gray-300 rounded ms-auto p-1">
+          <DocumentTextIcon class="h-6 w-6 text-gray-500" />
+        </button>
+        <Elapsed :showIcon="false" :elapsed="test.elapsed" class="font-normal text-gray-400 ms-auto cursor-pointer"
+          @click="toggleCollapse()" />
+        <ChevronDownIcon class="h-6 w-6 ms-2 me-2 cursor-pointer" :class="{ 'rotate-180': !state.collapsed }"
+          @click="toggleCollapse()" />
       </div>
-      <span>{{ name }}</span>
-      <ElapsedComponent :showIcon="false" :elapsed="test.elapsed" class="font-normal text-gray-500 ms-auto" />
-      <ChevronDownIcon class="h-6 w-6 ms-2 self-end" :class="{ 'rotate-180': !state.collapsed }" />
-    </div>
-    <div v-if="!state.collapsed" class="log-container px-2 py-2 mt-2 overflow-y-scroll self-stretch bg-gr">
-      <code class="log" v-for="output in fullOutput">{{ output.text }}</code>
+      <div v-if="!state.collapsed && !state.logsCollapsed && selfOutput.length > 0"
+        class="log-container px-2 py-2 mt-2 self-stretch bg-gr" :style="indentStyle">
+        <code class="log" v-for="output in selfOutput">{{ output.text }}</code>
+      </div>
+      <Test v-if="!state.collapsed" v-for="test in tests" :key="test.index" :test="test" :depth="props.depth + 1" />
     </div>
   </div>
 </template>
 
 <style scoped>
-  .expanded {
-    height: 50vh;
-  }
-
   .log {
     white-space: pre-wrap;
     word-wrap: break-word;

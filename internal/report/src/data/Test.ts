@@ -3,7 +3,7 @@ export interface TestOutput {
   text: string
 }
 
-export interface Test {
+export interface TestResult {
   index: number
   full_name: string
   package: string
@@ -11,10 +11,10 @@ export interface Test {
   done: boolean
   passed: boolean
   elapsed: number
-  tests: Record<string, Test>;
+  tests: Record<string, TestResult>;
 }
 
-export function testName(t: Test): string {
+export function testName(t: TestResult): string {
   const parts = t.full_name.split("/")
   return parts[parts.length - 1]
 }

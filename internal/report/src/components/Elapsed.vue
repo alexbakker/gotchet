@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed } from 'vue'
-  import { ClockIcon } from '@heroicons/vue/24/solid';
+  import { ClockIcon } from '@heroicons/vue/24/outline';
   import formatDuration from 'date-fns/formatDuration'
   import intervalToDuration from 'date-fns/intervalToDuration'
 
@@ -11,8 +11,11 @@
   }>()
 
   const elapsed = computed(() => {
-    if (!props.elapsed) {
+    if (typeof props.elapsed !== "number") {
       return "?"
+    }
+    if (props.elapsed == 0) {
+      return "0s"
     }
 
     const formatDistanceLocale: Record<string, string>
@@ -35,7 +38,7 @@
 </script>
 
 <template>
-  <div class="flex items-center" :class="props.class">
+  <div class="flex items-center select-none" :class="props.class">
     <ClockIcon v-if="props.showIcon" class="h-6 w-6" />
     <span :class="{ 'ms-1': props.showIcon }">{{ elapsed }}</span>
   </div>
