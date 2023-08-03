@@ -117,8 +117,8 @@
       <div v-if="!state.collapsed && !state.logsCollapsed && selfOutput.length > 0"
         class="log-container px-2 py-2 mt-2 self-stretch bg-gr" :style="indentStyle"
         @mouseenter="state.showClipboardButton = true" @mouseleave="state.showClipboardButton = false">
-        <button v-show="state.showClipboardButton"
-          class="float-right me-2 mt-2 border-solid border border-neutral-500 rounded p-1 hover:bg-gray-300"
+        <button :style="{ 'visibility': state.showClipboardButton ? 'visible' : 'hidden' }"
+          class="float-right me-1 mt-1 border-solid border border-neutral-500 rounded p-1 hover:bg-gray-300"
           @click="copyToClipboard()">
           <ClipboardIcon class="h-6 w-6 text-gray-500" />
         </button>
