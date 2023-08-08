@@ -20,6 +20,9 @@
           version = gotchetVersion;
           src = ./.;
 
+          subPackages = ["cmd/gotchet"];
+          vendorSha256 = "sha256-5dIHucvnzLwt+Yje+8z5ntiAeTf3IdtjPgR/Jmz//XQ=";
+
           CGO_ENABLED = 0;
 
           patchPhase = ''
@@ -35,8 +38,12 @@
             "-X ${pkgPath}.versionRevisionTime=${toString self.lastModified}"
           ];
 
-          subPackages = ["cmd/gotchet"];
-          vendorSha256 = "sha256-w+R+iCnm8q5TjCS6Ov/M8kOP4sVJCBWCeKCq6sxNl+w=";
+          checkPhase = ''
+            go test -v $(go list ./... | grep -v /test)
+            go test -json -v=test2json test/fake_test.go > test_output.json || true
+            go run github.com/alexbakker/gotchet/cmd/gotchet generate -i test_output.json -o report.html
+            ls -lah report.html
+          '';
         };
         gotchet-docker = with pkgs; dockerTools.buildImage {
           name = "gotchet";
