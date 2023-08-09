@@ -1,13 +1,11 @@
 <script setup lang="ts">
-  import { onMounted, reactive, computed } from 'vue'
+  import { onMounted, reactive, computed, watch } from 'vue'
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
   import { TestResult, testName } from '../data/Test'
 
   const state = reactive<{
-    title: string,
-    rootTest: TestResult | null
-    test: TestResult | null,
+    rootTest: TestResult | null,
     isLoading: boolean,
     filter: {
       testName: string
@@ -15,19 +13,17 @@
       showFailed: boolean
     }
   }>({
-    title: "Go Test Report",
     rootTest: null,
-    test: null,
     isLoading: true,
     filter: {
       testName: "",
       showPassed: true,
       showFailed: true
     }
-  });
+  })
 
   const stats = computed(() => {
-    const shownTests = tests.value;
+    const shownTests = tests.value
     return {
       total: shownTests.length,
       passed: shownTests.filter((t) => t.done && t.passed).length,
@@ -36,13 +32,34 @@
   })
 
   const tests = computed(() => {
-    if (!state.test) {
+    if (!state.rootTest) {
       return []
     }
 
-    return Object.values(state.test.tests)
+    return Object.values(state.rootTest.tests)
       .filter((t) => isTestShown(t))
       .sort((t1, t2) => t1.index - t2.index)
+  })
+
+  const title = computed(() => {
+    const fallbackTitle = "Go Test Report"
+    if (!state.rootTest) {
+      return fallbackTitle
+    }
+
+    if (state.rootTest.full_name != "") {
+      return state.rootTest.full_name
+    }
+
+    const tests = Object.values(state.rootTest.tests)
+    if (tests.length != 1) {
+      return fallbackTitle
+    }
+
+    return tests[0].full_name
+  })
+  watch(title, async (newTitle, _) => {
+    document.title = newTitle
   })
 
   onMounted(() => {
@@ -52,40 +69,29 @@
   function isTestShown(t: TestResult): boolean {
     if (t.done) {
       if (t.passed && !state.filter.showPassed) {
-        return false;
+        return false
       }
 
       if (!t.passed && !state.filter.showFailed) {
-        return false;
+        return false
       }
     }
 
     return testName(t).toLowerCase().includes(state.filter.testName.toLowerCase())
   }
 
-  function setTitle(title: string) {
-    document.title = title
-    state.title = title
-  }
-
-  function setTest(rootTest: TestResult, test: TestResult) {
-    setTitle(test.full_name)
-    state.rootTest = rootTest
-    state.test = test
-  }
-
   function readData(cb: (text: string) => void) {
     function decompress(byteArray: ArrayBuffer, encoding: CompressionFormat) {
-      const dcs = new DecompressionStream(encoding);
-      const writer = dcs.writable.getWriter();
-      writer.write(byteArray);
-      writer.close();
+      const dcs = new DecompressionStream(encoding)
+      const writer = dcs.writable.getWriter()
+      writer.write(byteArray)
+      writer.close()
       return new Response(dcs.readable).arrayBuffer().then(function (ab) {
-        return new TextDecoder().decode(ab);
-      });
+        return new TextDecoder().decode(ab)
+      })
     }
 
-    const raw = document.getElementById("report-data")!.innerText;
+    const raw = document.getElementById("report-data")!.innerText
     fetch(new URL(raw))
       .then(r => r.arrayBuffer())
       .then(ab => decompress(ab, "gzip"))
@@ -96,14 +102,9 @@
   function loadReport() {
     state.isLoading = true
     readData(text => {
-      let rootTest: TestResult = JSON.parse(text);
+      let rootTest: TestResult = JSON.parse(text)
       if (rootTest) {
-        // Go deep until there's more than one child test
-        let test = rootTest;
-        while (test.tests && Object.keys(test.tests).length == 1) {
-          test = Object.values(test.tests)[0];
-        }
-        setTest(rootTest, test);
+        state.rootTest = rootTest
         state.isLoading = false
       }
     })
@@ -111,8 +112,8 @@
 
   function openJSON() {
     readData(text => {
-      const blob = new Blob([text], { type: 'application/json' });
-      var url = window.URL.createObjectURL(blob);
+      const blob = new Blob([text], { type: 'application/json' })
+      var url = window.URL.createObjectURL(blob)
       window.open(url, "_blank")
     })
   }
@@ -121,8 +122,8 @@
 <template>
   <template v-if="!state.isLoading">
     <div class="flex items-center text-3xl font-bold mb-5">
-      <h1>{{ state.title }}</h1>
-      <Elapsed :showIcon="true" :elapsed="state.test?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
+      <h1>{{ title }}</h1>
+      <Elapsed :showIcon="true" :elapsed="state.rootTest?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
       <div class="ms-auto">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /
         <span>{{ stats?.total }}</span>
@@ -144,16 +145,16 @@
       <div class="w-full mb-2">
         <Test v-for="test in tests" :key="test.index" :test="test" :depth="0" />
       </div>
-      <div class="flex items-start">
-        <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
-        <div class="ms-auto">
-          <p class="text-gray-500" v-if="state.test">Test run started: {{
-            state.test.started_at }}</p>
-          <p class="text-gray-500 mb-5" v-if="state.rootTest && state.rootTest.capture_started_at">Report generated: {{
-            state.rootTest.capture_started_at }}</p>
-        </div>
+    </div>
+    <p v-else class="mb-3">Empty report!</p>
+    <div class="flex items-start">
+      <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
+      <div class="ms-auto">
+        <p class="text-gray-500" v-if="state.rootTest">Test run started: {{
+          state.rootTest.started_at }}</p>
+        <p class="text-gray-500 mb-5" v-if="state.rootTest && state.rootTest.capture_started_at">Report generated: {{
+          state.rootTest.capture_started_at }}</p>
       </div>
     </div>
-    <p v-else>Empty report!</p>
   </template>
 </template>
