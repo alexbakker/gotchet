@@ -40,7 +40,7 @@
 
           checkPhase = ''
             go test -v $(go list ./... | grep -v /test)
-            go test -json -v=test2json test/fake_test.go > test_output.json || true
+            go test -json -v=test2json ./test/ -run GenerateFakeTree > test_output.json || true
             go run github.com/alexbakker/gotchet/cmd/gotchet generate -i test_output.json -o report.html
             ls -lah report.html
           '';
