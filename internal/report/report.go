@@ -43,7 +43,7 @@ func Render(c *format.TestCapture, w io.Writer) error {
 		Title string
 		Data  template.HTML
 	}{
-		Title: "Go Test Report",
+		Title: c.Title,
 		Data:  template.HTML(buf.String()),
 	})
 }

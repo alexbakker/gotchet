@@ -14,7 +14,8 @@ export interface TestResult {
   passed: boolean
   elapsed: number
   tests: Record<string, TestResult>;
-  // Capture timestamps are only set for the root test
+  // The title and capture timestamps are only set for the root test
+  title: string | undefined
   capture_started_at: string | undefined
   capture_ended_at: string | undefined
 }

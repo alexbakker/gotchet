@@ -41,27 +41,6 @@
       .sort((t1, t2) => t1.index - t2.index)
   })
 
-  const title = computed(() => {
-    const fallbackTitle = "Go Test Report"
-    if (!state.rootTest) {
-      return fallbackTitle
-    }
-
-    if (state.rootTest.full_name != "") {
-      return state.rootTest.full_name
-    }
-
-    const tests = Object.values(state.rootTest.tests)
-    if (tests.length != 1) {
-      return fallbackTitle
-    }
-
-    return tests[0].full_name
-  })
-  watch(title, async (newTitle, _) => {
-    document.title = newTitle
-  })
-
   onMounted(() => {
     loadReport()
   })
@@ -122,7 +101,7 @@
 <template>
   <template v-if="!state.isLoading">
     <div class="flex items-center text-3xl font-bold mb-5">
-      <h1>{{ title }}</h1>
+      <h1>{{ state.rootTest?.title }}</h1>
       <Elapsed :showIcon="true" :elapsed="state.rootTest?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
       <div class="ms-auto">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /

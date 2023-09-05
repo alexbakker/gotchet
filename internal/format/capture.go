@@ -28,8 +28,9 @@ type Test struct {
 
 type TestCapture struct {
 	*Test
-	CaptureStartedAt Time `json:"capture_started_at"`
-	CaptureEndedAt   Time `json:"capture_ended_at"`
+	Title            string `json:"title"`
+	CaptureStartedAt Time   `json:"capture_started_at"`
+	CaptureEndedAt   Time   `json:"capture_ended_at"`
 	emulate          bool
 	testCount        int
 	outputCount      int

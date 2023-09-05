@@ -12,7 +12,7 @@ import (
 var (
 	Root = &cobra.Command{
 		Use:   "gotchet",
-		Short: "Go test reporter",
+		Short: "Tool for reporting on Go test results",
 		Run:   startRoot,
 	}
 	rootFlags = struct {
