@@ -15,13 +15,13 @@
     in rec {
       packages = flake-utils.lib.flattenTree rec {
         default = gotchet-cli;
-        gotchet-cli = with pkgs; buildGoModule rec {
+        gotchet-cli = with pkgs; buildGo121Module rec {
           pname = "gotchet-cli";
           version = gotchetVersion;
           src = ./.;
 
           subPackages = ["cmd/gotchet"];
-          vendorSha256 = "sha256-5dIHucvnzLwt+Yje+8z5ntiAeTf3IdtjPgR/Jmz//XQ=";
+          vendorSha256 = "sha256-NMrhxYo0SBATDe4NqT1tZShK9p+EKcR89c0P9oz707k=";
 
           CGO_ENABLED = 0;
 
@@ -84,7 +84,7 @@
       devShells.default = with pkgs; mkShell {
         hardeningDisable = [ "fortify" ];
         buildInputs = [
-          go
+          go_1_21
 
           nodejs-18_x
           yarn
