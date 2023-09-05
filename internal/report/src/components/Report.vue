@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onMounted, reactive, computed, watch } from 'vue'
+  import { onMounted, reactive, computed } from 'vue'
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
   import { TestResult, testName } from '../data/Test'
