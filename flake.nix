@@ -38,6 +38,14 @@
             "-X ${pkgPath}.versionRevisionTime=${toString self.lastModified}"
           ];
 
+          nativeBuildInputs = [ installShellFiles ];
+
+          postInstall = ''
+            for shell in bash fish zsh; do
+              installShellCompletion --cmd gotchet --$shell <($out/bin/gotchet completion $shell)
+            done
+          '';
+
           checkPhase = ''
             go test -v $(go list ./... | grep -v /test)
             go test -json -v=test2json ./test/ -run GenerateFakeTree > test_output.json || true
