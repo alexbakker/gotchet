@@ -27,10 +27,12 @@ type Test struct {
 }
 
 type TestCapture struct {
-	*Test
-	Title            string `json:"title"`
-	CaptureStartedAt Time   `json:"capture_started_at"`
-	CaptureEndedAt   Time   `json:"capture_ended_at"`
+	Tests            map[string]*Test `json:"tests"`
+	Title            string           `json:"title"`
+	StartedAt        Time             `json:"started_at"`
+	EndedAt          Time             `json:"ended_at"`
+	CaptureStartedAt Time             `json:"capture_started_at"`
+	CaptureEndedAt   Time             `json:"capture_ended_at"`
 	emulate          bool
 	testCount        int
 	outputCount      int
@@ -77,7 +79,7 @@ func (t *Test) FullOutput() *bytes.Buffer {
 }
 
 func (c *TestCapture) handleEvent(e *TestEvent) error {
-	test := c.Test
+	test := c.Tests[e.Package]
 	if test != nil {
 		for _, name := range splitTestName(e.Test) {
 			if subTest, ok := test.Tests[name]; ok {
@@ -91,10 +93,10 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 
 	switch e.Action {
 	case TestActionStart:
-		if c.Test != nil {
-			return errors.New("received second binary start event")
+		if test != nil {
+			return fmt.Errorf("received second binary start event for: %s", e.Package)
 		}
-		c.Test = c.newTest(nil, e)
+		c.Tests[e.Package] = c.newTest(nil, e)
 	case TestActionRun:
 		if test == nil {
 			return fmt.Errorf("no parent for test: %s", e.Test)
@@ -159,17 +161,27 @@ func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 // TODO: When reading from stdin, make this write to disk and seek instead of
 // keeping everything in-memory
 func Read(r io.Reader, emulate bool) (*TestCapture, error) {
-	c := TestCapture{CaptureStartedAt: Time(time.Now())}
+	c := TestCapture{
+		CaptureStartedAt: Time(time.Now()),
+		Tests:            make(map[string]*Test),
+	}
 
+	var lastTs Time
 	br := bufio.NewReader(r)
 	for {
 		event, err := readEvent(br)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				c.EndedAt = lastTs
 				c.CaptureEndedAt = Time(time.Now())
 				return &c, nil
 			}
 			return nil, err
+		}
+
+		lastTs = event.Time
+		if time.Time(c.StartedAt).IsZero() {
+			c.StartedAt = lastTs
 		}
 
 		if err := c.handleEvent(event); err != nil {

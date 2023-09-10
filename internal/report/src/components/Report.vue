@@ -2,10 +2,10 @@
   import { onMounted, reactive, computed } from 'vue'
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
-  import { TestResult, testName } from '../data/Test'
+  import { TestCapture, TestResult, testName } from '../data/Test'
 
   const state = reactive<{
-    rootTest: TestResult | null,
+    testCapture: TestCapture | null,
     isLoading: boolean,
     filter: {
       testName: string
@@ -13,7 +13,7 @@
       showFailed: boolean
     }
   }>({
-    rootTest: null,
+    testCapture: null,
     isLoading: true,
     filter: {
       testName: "",
@@ -32,13 +32,22 @@
   })
 
   const tests = computed(() => {
-    if (!state.rootTest) {
+    if (!state.testCapture) {
       return []
     }
 
-    return Object.values(state.rootTest.tests)
+    return Object.values(state.testCapture.tests)
       .filter((t) => isTestShown(t))
       .sort((t1, t2) => t1.index - t2.index)
+  })
+
+  const totalElapsed = computed(() => {
+    if (!state.testCapture) {
+      return 0
+    }
+
+    return Object.values(state.testCapture.tests)
+      .reduce((sum, t) => sum + t.elapsed, 0);
   })
 
   onMounted(() => {
@@ -81,9 +90,9 @@
   function loadReport() {
     state.isLoading = true
     readData(text => {
-      let rootTest: TestResult = JSON.parse(text)
-      if (rootTest) {
-        state.rootTest = rootTest
+      let testCapture: TestCapture = JSON.parse(text)
+      if (testCapture) {
+        state.testCapture = testCapture
         state.isLoading = false
       }
     })
@@ -101,8 +110,8 @@
 <template>
   <template v-if="!state.isLoading">
     <div class="flex items-center text-3xl font-bold mb-5">
-      <h1>{{ state.rootTest?.title }}</h1>
-      <Elapsed :showIcon="true" :elapsed="state.rootTest?.elapsed" class="font-normal text-xl text-gray-500 ms-5" />
+      <h1>{{ state.testCapture?.title }}</h1>
+      <Elapsed :showIcon="true" :elapsed="totalElapsed" class="font-normal text-xl text-gray-500 ms-5" />
       <div class="ms-auto">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /
         <span>{{ stats?.total }}</span>
@@ -129,10 +138,10 @@
     <div class="flex items-start">
       <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
       <div class="ms-auto">
-        <p class="text-gray-500" v-if="state.rootTest">Test run started: {{
-          state.rootTest.started_at }}</p>
-        <p class="text-gray-500 mb-5" v-if="state.rootTest && state.rootTest.capture_started_at">Report generated: {{
-          state.rootTest.capture_started_at }}</p>
+        <p class="text-gray-500" v-if="state.testCapture">Test run started: {{
+          state.testCapture.started_at }}</p>
+        <p class="text-gray-500 mb-5" v-if="state.testCapture && state.testCapture.capture_started_at">Report generated:
+          {{ state.testCapture.capture_started_at }}</p>
       </div>
     </div>
   </template>

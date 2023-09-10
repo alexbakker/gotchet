@@ -14,13 +14,21 @@ export interface TestResult {
   passed: boolean
   elapsed: number
   tests: Record<string, TestResult>;
-  // The title and capture timestamps are only set for the root test
-  title: string | undefined
-  capture_started_at: string | undefined
-  capture_ended_at: string | undefined
+}
+
+export interface TestCapture {
+  tests: Record<string, TestResult>;
+  title: string
+  started_at: string | null
+  ended_at: string | null
+  capture_started_at: string
+  capture_ended_at: string
 }
 
 export function testName(t: TestResult): string {
+  if (t.full_name == "") {
+    return t.package
+  }
   const parts = t.full_name.split("/")
   return parts[parts.length - 1]
 }

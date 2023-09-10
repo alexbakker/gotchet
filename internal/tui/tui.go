@@ -65,9 +65,12 @@ func New(c *format.TestCapture) *Model {
 	m := Model{
 		c: c,
 	}
-	if c.Test != nil {
+	if len(c.Tests) > 1 {
+		panic("multi-package tests are not supported yet")
+	}
+	if len(c.Tests) == 1 {
 		// Go deep until there's more than one test
-		test := c.Test
+		test := maps.Values(c.Tests)[0]
 		for test.Tests != nil && len(test.Tests) == 1 {
 			test = maps.Values(test.Tests)[0]
 		}
