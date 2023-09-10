@@ -21,6 +21,7 @@ type Test struct {
 	Package   string           `json:"package"`
 	Output    []*Output        `json:"output"`
 	Done      bool             `json:"done"`
+	Skipped   bool             `json:"skipped"`
 	Passed    bool             `json:"passed"`
 	Elapsed   time.Duration    `json:"elapsed"`
 	Tests     map[string]*Test `json:"tests"`
@@ -128,6 +129,15 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 
 		test.Done = true
 		test.Passed = true
+		test.Elapsed = time.Duration(e.Elapsed)
+		test.EndedAt = e.Time
+	case TestActionSkip:
+		if test == nil {
+			return fmt.Errorf("received skip event for unstarted test: %s", e.Test)
+		}
+
+		test.Done = true
+		test.Skipped = true
 		test.Elapsed = time.Duration(e.Elapsed)
 		test.EndedAt = e.Time
 	}

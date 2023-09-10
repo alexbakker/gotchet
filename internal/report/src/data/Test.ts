@@ -11,6 +11,7 @@ export interface TestResult {
   package: string
   output: Array<TestOutput>
   done: boolean
+  skipped: boolean
   passed: boolean
   elapsed: number
   tests: Record<string, TestResult>;

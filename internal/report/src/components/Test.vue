@@ -5,6 +5,7 @@
   import {
     ChevronDownIcon,
     CheckCircleIcon,
+    ExclamationCircleIcon,
     QuestionMarkCircleIcon,
     XCircleIcon,
   } from '@heroicons/vue/24/solid'
@@ -101,8 +102,9 @@
         <div class="flex items-center cursor-pointer p-2 grow" @click="toggleCollapse()">
           <div class="me-1">
             <CheckCircleIcon v-if="test.passed" class="h-6 w-6 text-green-700" />
-            <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-yellow-700" />
-            <XCircleIcon v-else="test.done" class="h-6 w-6 text-red-700" />
+            <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-orange-700" />
+            <ExclamationCircleIcon v-else-if="test.skipped" class="h-6 w-6 text-yellow-700" />
+            <XCircleIcon v-else class="h-6 w-6 text-red-700" />
           </div>
           <span>{{ name }}</span>
         </div>
