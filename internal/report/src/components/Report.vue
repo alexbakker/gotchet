@@ -11,6 +11,7 @@
       testName: string
       showPassed: boolean
       showFailed: boolean
+      showSkipped: boolean
     }
   }>({
     testCapture: null,
@@ -18,7 +19,8 @@
     filter: {
       testName: "",
       showPassed: true,
-      showFailed: true
+      showFailed: true,
+      showSkipped: true
     }
   })
 
@@ -61,6 +63,10 @@
       }
 
       if (!t.passed && !state.filter.showFailed) {
+        return false
+      }
+
+      if (t.skipped && !state.filter.showSkipped) {
         return false
       }
     }
@@ -124,6 +130,9 @@
       <input v-model="state.filter.showFailed" id="check-show-failed" type="checkbox"
         class="border-solid border border-neutral-800 p-1 ms-2">
       <label for="check-show-failed" class="ms-1">Failed</label>
+      <input v-model="state.filter.showSkipped" id="check-show-skipped" type="checkbox"
+        class="border-solid border border-neutral-800 p-1 ms-2">
+      <label for="check-show-skipped" class="ms-1">Skipped</label>
     </div>
     <div class="flex flex-row items-center mb-3">
       <input v-model="state.filter.testName" type="text" class="border-solid border border-neutral-800 p-1 grow"
