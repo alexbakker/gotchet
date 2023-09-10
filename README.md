@@ -12,14 +12,24 @@ Current status: __WIP__.
 Use one of the following commands to get the right
 [test2json](https://pkg.go.dev/cmd/test2json) output from your Go tests:
 
-For the ``go test`` command:
+For ``go test``:
 
 ```
 go test -json -v=test2json ./...
 ```
 
-For test binaries:
+For test binaries (``go test -c``):
 
 ```
 go tool test2json -t -p pkgname ./test-binary -test.v=test2json
 ```
+
+Pipe the output to gotchet to generate an HTML report
+
+```
+go test -json -v=test2json ./... | gotchet gen > report.html
+```
+
+## Screenshot
+
+![Screenshot](screenshot.png)
