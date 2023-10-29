@@ -3,12 +3,25 @@
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
   import { readReportData } from '../data/Test'
-  import { useReportStore } from '../stores/report.ts'
+  import { useReportStore, TestResult } from '../stores/report.ts'
 
   const store = useReportStore()
 
   const stats = computed(() => {
-    const shownTests = tests.value
+    function getSubTests(t: TestResult): Array<TestResult> {
+      if (Object.keys(t.tests).length == 0) {
+        return [t];
+      }
+      if (Object.keys(t.tests).length == 1) {
+        return getSubTests(Object.values(t.tests)[0])
+      }
+
+      return Object.values(t.tests)
+    }
+    const shownTests: Array<TestResult> = [];
+    for (const test of tests.value) {
+      shownTests.push(...getSubTests(test))
+    }
     return {
       total: shownTests.length,
       passed: shownTests.filter((t) => t.data.done && t.data.passed).length,
@@ -48,7 +61,8 @@
     <div class="flex items-center text-3xl font-bold mb-5">
       <h1>{{ store.testCapture?.data.title }}</h1>
       <Elapsed :showIcon="true" :elapsed="totalElapsed" class="font-normal text-xl text-gray-500 ms-5" />
-      <div class="ms-auto">
+      <div class="ms-auto"
+        title="Totals are based on the first level in the test tree that is found to have more than one subtest">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /
         <span>{{ stats?.total }}</span>
       </div>
