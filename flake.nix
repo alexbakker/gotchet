@@ -21,7 +21,7 @@
           src = ./.;
 
           subPackages = ["cmd/gotchet"];
-          vendorSha256 = "sha256-NMrhxYo0SBATDe4NqT1tZShK9p+EKcR89c0P9oz707k=";
+          vendorSha256 = "sha256-gtBvrOpuh0WeGwyZfDlAMo4FujIFGVi09pgHl0VYqyM=";
 
           CGO_ENABLED = 0;
 
