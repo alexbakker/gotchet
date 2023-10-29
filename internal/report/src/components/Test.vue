@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, reactive } from 'vue'
-  import { TestResult, TestOutput, testName } from '../data/Test'
+  import { TestOutput, testName } from '../data/Test'
   import Elapsed from './Elapsed.vue'
   import {
     ChevronDownIcon,
@@ -13,6 +13,7 @@
     ClipboardIcon,
     DocumentTextIcon
   } from '@heroicons/vue/24/outline'
+  import { TestResult } from '../stores/report.ts'
 
   const props = defineProps<{
     test: TestResult
@@ -24,18 +25,17 @@
   })
 
   const state = reactive({
-    collapsed: true,
     logsCollapsed: true,
     showClipboardButton: false
   })
 
-  const name = computed(() => testName(props.test))
+  const name = computed(() => testName(props.test.data))
 
   const tests = computed(() =>
-    Object.values(props.test.tests).sort((t1, t2) => t1.index - t2.index))
+    Object.values(props.test.tests).sort((t1, t2) => t1.data.index - t2.data.index))
 
   const showLogsToggle = computed(() => {
-    return !state.collapsed && hasChildTests.value
+    return !props.test.collapsed && hasChildTests.value
   })
 
   /*const fullOutput = computed(() => {
@@ -54,7 +54,7 @@
   })*/
 
   const selfOutput = computed(() => {
-    const outputs: Array<TestOutput> = Object.assign([], props.test.output)
+    const outputs: Array<TestOutput> = Object.assign([], props.test.data.output)
     outputs.sort((o1, o2) => o1.index - o2.index)
     return outputs
   })
@@ -64,8 +64,8 @@
   })
 
   function toggleCollapse() {
-    const collapse = !state.collapsed
-    state.collapsed = collapse
+    const collapse = !props.test.collapsed
+    props.test.collapsed = collapse
     if (collapse) {
       state.logsCollapsed = true
     } else if (hasChildTests.value) {
@@ -77,11 +77,11 @@
 
   function toggleLogsCollapse() {
     const collapse = !state.logsCollapsed
-    if (!collapse && state.collapsed) {
-      state.collapsed = false
+    if (!collapse && props.test.collapsed) {
+      props.test.collapsed = false
     }
     if (collapse && !hasChildTests.value) {
-      state.collapsed = true
+      props.test.collapsed = true
     }
     state.logsCollapsed = collapse
   }
@@ -101,9 +101,9 @@
       <div class="flex items-center" :style="indentStyle">
         <div class="flex items-center cursor-pointer p-2 grow" @click="toggleCollapse()">
           <div class="me-1">
-            <CheckCircleIcon v-if="test.passed" class="h-6 w-6 text-green-700" />
-            <QuestionMarkCircleIcon v-else-if="!test.done" class="h-6 w-6 text-orange-700" />
-            <ExclamationCircleIcon v-else-if="test.skipped" class="h-6 w-6 text-yellow-700" />
+            <CheckCircleIcon v-if="test.data.passed" class="h-6 w-6 text-green-700" />
+            <QuestionMarkCircleIcon v-else-if="!test.data.done" class="h-6 w-6 text-orange-700" />
+            <ExclamationCircleIcon v-else-if="test.data.skipped" class="h-6 w-6 text-yellow-700" />
             <XCircleIcon v-else class="h-6 w-6 text-red-700" />
           </div>
           <span>{{ name }}</span>
@@ -111,12 +111,12 @@
         <button v-show="showLogsToggle" @click="toggleLogsCollapse()" class="hover:bg-gray-300 rounded ms-auto p-1">
           <DocumentTextIcon class="h-6 w-6 text-gray-500" />
         </button>
-        <Elapsed :showIcon="false" :elapsed="test.elapsed" class="font-normal text-gray-400 ms-auto cursor-pointer"
+        <Elapsed :showIcon="false" :elapsed="test.data.elapsed" class="font-normal text-gray-400 ms-auto cursor-pointer"
           @click="toggleCollapse()" />
-        <ChevronDownIcon class="h-6 w-6 ms-2 me-2 cursor-pointer" :class="{ 'rotate-180': !state.collapsed }"
+        <ChevronDownIcon class="h-6 w-6 ms-2 me-2 cursor-pointer" :class="{ 'rotate-180': !props.test.collapsed }"
           @click="toggleCollapse()" />
       </div>
-      <div v-if="!state.collapsed && !state.logsCollapsed && selfOutput.length > 0"
+      <div v-if="!props.test.collapsed && !state.logsCollapsed && selfOutput.length > 0"
         class="log-container px-2 py-2 mt-2 self-stretch bg-gr" :style="indentStyle"
         @mouseenter="state.showClipboardButton = true" @mouseleave="state.showClipboardButton = false">
         <button :style="{ 'visibility': state.showClipboardButton ? 'visible' : 'hidden' }"
@@ -126,7 +126,8 @@
         </button>
         <code class="log" v-for="output in selfOutput">{{ output.text }}</code>
       </div>
-      <Test v-if="!state.collapsed" v-for="test in tests" :key="test.index" :test="test" :depth="props.depth + 1" />
+      <Test v-if="!props.test.collapsed" v-for="test in tests" :key="test.data.index" :test="test"
+        :depth="props.depth + 1" />
     </div>
   </div>
 </template>

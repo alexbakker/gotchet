@@ -1,12 +1,13 @@
 <script setup lang="ts">
-  import { onMounted, reactive, computed } from 'vue'
+  import { reactive, computed } from 'vue'
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
-  import { TestCapture, TestResult, testName } from '../data/Test'
+  import { testName, readReportData } from '../data/Test'
+  import { TestResult, useReportStore } from '../stores/report.ts'
+
+  const store = useReportStore()
 
   const state = reactive<{
-    testCapture: TestCapture | null,
-    isLoading: boolean,
     filter: {
       testName: string
       showPassed: boolean
@@ -14,8 +15,6 @@
       showSkipped: boolean
     }
   }>({
-    testCapture: null,
-    isLoading: true,
     filter: {
       testName: "",
       showPassed: true,
@@ -28,84 +27,50 @@
     const shownTests = tests.value
     return {
       total: shownTests.length,
-      passed: shownTests.filter((t) => t.done && t.passed).length,
-      failed: shownTests.filter((t) => t.done && !t.passed).length
+      passed: shownTests.filter((t) => t.data.done && t.data.passed).length,
+      failed: shownTests.filter((t) => t.data.done && !t.data.passed).length
     }
   })
 
   const tests = computed(() => {
-    if (!state.testCapture) {
+    if (!store.testCapture) {
       return []
     }
 
-    return Object.values(state.testCapture.tests)
+    return Object.values(store.testCapture.tests)
       .filter((t) => isTestShown(t))
-      .sort((t1, t2) => t1.index - t2.index)
+      .sort((t1, t2) => t1.data.index - t2.data.index)
   })
 
   const totalElapsed = computed(() => {
-    if (!state.testCapture) {
+    if (!store.testCapture) {
       return 0
     }
 
-    return Object.values(state.testCapture.tests)
-      .reduce((sum, t) => sum + t.elapsed, 0);
-  })
-
-  onMounted(() => {
-    loadReport()
+    return Object.values(store.testCapture.tests)
+      .reduce((sum, t) => sum + t.data.elapsed, 0);
   })
 
   function isTestShown(t: TestResult): boolean {
-    if (t.done) {
-      if (t.passed && !state.filter.showPassed) {
+    if (t.data.done) {
+      if (t.data.passed && !state.filter.showPassed) {
         return false
       }
 
-      if (!t.passed && !state.filter.showFailed) {
+      if (!t.data.passed && !state.filter.showFailed) {
         return false
       }
 
-      if (t.skipped && !state.filter.showSkipped) {
+      if (t.data.skipped && !state.filter.showSkipped) {
         return false
       }
     }
 
-    return testName(t).toLowerCase().includes(state.filter.testName.toLowerCase())
-  }
-
-  function readData(cb: (text: string) => void) {
-    function decompress(byteArray: ArrayBuffer, encoding: CompressionFormat) {
-      const dcs = new DecompressionStream(encoding)
-      const writer = dcs.writable.getWriter()
-      writer.write(byteArray)
-      writer.close()
-      return new Response(dcs.readable).arrayBuffer().then(function (ab) {
-        return new TextDecoder().decode(ab)
-      })
-    }
-
-    const raw = document.getElementById("report-data")!.innerText
-    fetch(new URL(raw))
-      .then(r => r.arrayBuffer())
-      .then(ab => decompress(ab, "gzip"))
-      .then(text => cb(text))
-      .catch(e => console.error(e))
-  }
-
-  function loadReport() {
-    state.isLoading = true
-    readData(text => {
-      let testCapture: TestCapture = JSON.parse(text)
-      if (testCapture) {
-        state.testCapture = testCapture
-        state.isLoading = false
-      }
-    })
+    return testName(t.data).toLowerCase().includes(state.filter.testName.toLowerCase())
   }
 
   function openJSON() {
-    readData(text => {
+    readReportData(text => {
       const blob = new Blob([text], { type: 'application/json' })
       var url = window.URL.createObjectURL(blob)
       window.open(url, "_blank")
@@ -114,9 +79,9 @@
 </script>
 
 <template>
-  <template v-if="!state.isLoading">
+  <template v-if="!store.isLoading">
     <div class="flex items-center text-3xl font-bold mb-5">
-      <h1>{{ state.testCapture?.title }}</h1>
+      <h1>{{ store.testCapture?.data.title }}</h1>
       <Elapsed :showIcon="true" :elapsed="totalElapsed" class="font-normal text-xl text-gray-500 ms-5" />
       <div class="ms-auto">
         <span class="text-green-700">{{ stats?.passed }}</span> / <span class="text-red-700">{{ stats?.failed }}</span> /
@@ -140,17 +105,18 @@
     </div>
     <div v-if="tests.length > 0">
       <div class="w-full mb-2">
-        <Test v-for="test in tests" :key="test.index" :test="test" :depth="0" />
+        <Test v-for="test in tests" :key="test.data.index" :test="test" :depth="0" />
       </div>
     </div>
     <p v-else class="mb-3">Empty report!</p>
     <div class="flex items-start">
       <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
       <div class="ms-auto">
-        <p class="text-gray-500" v-if="state.testCapture">Test run started: {{
-          state.testCapture.started_at }}</p>
-        <p class="text-gray-500 mb-5" v-if="state.testCapture && state.testCapture.capture_started_at">Report generated:
-          {{ state.testCapture.capture_started_at }}</p>
+        <p class="text-gray-500" v-if="store.testCapture">Test run started: {{
+          store.testCapture.data.started_at }}</p>
+        <p class="text-gray-500 mb-5" v-if="store.testCapture && store.testCapture.data.capture_started_at">Report
+          generated:
+          {{ store.testCapture.data.capture_started_at }}</p>
       </div>
     </div>
   </template>
