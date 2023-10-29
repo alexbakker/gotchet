@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import {
   TestCapture as TestCaptureData,
   TestResult as TestResultData,
@@ -20,6 +20,17 @@ export interface TestCapture {
 export const useReportStore = defineStore('report', () => {
   const isLoading = ref(true)
   const testCapture = ref<TestCapture | null>(null)
+  const filter = reactive<{
+    testName: string
+    showPassed: boolean
+    showFailed: boolean
+    showSkipped: boolean
+  }>({
+    testName: "",
+    showPassed: true,
+    showFailed: true,
+    showSkipped: true
+  })
 
   function wrapTestResults(parentTestResultData: TestResultData | null, testResultsData: Record<string, TestResultData>): Record<string, TestResult> {
     const tests: Record<string, TestResult> = {}
@@ -57,5 +68,5 @@ export const useReportStore = defineStore('report', () => {
   }
 
   loadReport()
-  return { isLoading, testCapture }
+  return { isLoading, testCapture, filter }
 })

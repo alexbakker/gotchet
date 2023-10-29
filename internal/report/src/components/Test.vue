@@ -14,6 +14,9 @@
     DocumentTextIcon
   } from '@heroicons/vue/24/outline'
   import { TestResult } from '../stores/report.ts'
+  import { useReportStore } from '../stores/report.ts'
+
+  const store = useReportStore()
 
   const props = defineProps<{
     test: TestResult
@@ -32,7 +35,9 @@
   const name = computed(() => testName(props.test.data))
 
   const tests = computed(() =>
-    Object.values(props.test.tests).sort((t1, t2) => t1.data.index - t2.data.index))
+    Object.values(props.test.tests)
+      .filter((t) => isTestShown(t))
+      .sort((t1, t2) => t1.data.index - t2.data.index))
 
   const showLogsToggle = computed(() => {
     return !props.test.collapsed && hasChildTests.value
@@ -92,6 +97,37 @@
       log += line.text
     }
     await navigator.clipboard.writeText(log)
+  }
+
+  function testMatchesFilter(t: TestResult): boolean {
+    const matches = testName(t.data).toLowerCase().includes(store.filter.testName.toLowerCase())
+    if (!matches) {
+      for (const st of Object.values(t.tests)) {
+        if (testMatchesFilter(st)) {
+          return true
+        }
+      }
+    }
+
+    return matches
+  }
+
+  function isTestShown(t: TestResult): boolean {
+    if (t.data.done) {
+      if (t.data.passed && !store.filter.showPassed) {
+        return false
+      }
+
+      if (!t.data.passed && !store.filter.showFailed) {
+        return false
+      }
+
+      if (t.data.skipped && !store.filter.showSkipped) {
+        return false
+      }
+    }
+
+    return testMatchesFilter(t)
   }
 </script>
 

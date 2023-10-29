@@ -1,27 +1,11 @@
 <script setup lang="ts">
-  import { reactive, computed } from 'vue'
+  import { computed } from 'vue'
   import Test from './Test.vue'
   import Elapsed from './Elapsed.vue'
-  import { testName, readReportData } from '../data/Test'
-  import { TestResult, useReportStore } from '../stores/report.ts'
+  import { readReportData } from '../data/Test'
+  import { useReportStore } from '../stores/report.ts'
 
   const store = useReportStore()
-
-  const state = reactive<{
-    filter: {
-      testName: string
-      showPassed: boolean
-      showFailed: boolean
-      showSkipped: boolean
-    }
-  }>({
-    filter: {
-      testName: "",
-      showPassed: true,
-      showFailed: true,
-      showSkipped: true
-    }
-  })
 
   const stats = computed(() => {
     const shownTests = tests.value
@@ -38,7 +22,6 @@
     }
 
     return Object.values(store.testCapture.tests)
-      .filter((t) => isTestShown(t))
       .sort((t1, t2) => t1.data.index - t2.data.index)
   })
 
@@ -50,24 +33,6 @@
     return Object.values(store.testCapture.tests)
       .reduce((sum, t) => sum + t.data.elapsed, 0);
   })
-
-  function isTestShown(t: TestResult): boolean {
-    if (t.data.done) {
-      if (t.data.passed && !state.filter.showPassed) {
-        return false
-      }
-
-      if (!t.data.passed && !state.filter.showFailed) {
-        return false
-      }
-
-      if (t.data.skipped && !state.filter.showSkipped) {
-        return false
-      }
-    }
-
-    return testName(t.data).toLowerCase().includes(state.filter.testName.toLowerCase())
-  }
 
   function openJSON() {
     readReportData(text => {
@@ -89,18 +54,18 @@
       </div>
     </div>
     <div class="flex flex-row items-center mb-3">
-      <input v-model="state.filter.showPassed" id="check-show-passed" type="checkbox"
+      <input v-model="store.filter.showPassed" id="check-show-passed" type="checkbox"
         class="border-solid border border-neutral-800 p-1">
       <label for="check-show-passed" class="ms-1">Passed</label>
-      <input v-model="state.filter.showFailed" id="check-show-failed" type="checkbox"
+      <input v-model="store.filter.showFailed" id="check-show-failed" type="checkbox"
         class="border-solid border border-neutral-800 p-1 ms-2">
       <label for="check-show-failed" class="ms-1">Failed</label>
-      <input v-model="state.filter.showSkipped" id="check-show-skipped" type="checkbox"
+      <input v-model="store.filter.showSkipped" id="check-show-skipped" type="checkbox"
         class="border-solid border border-neutral-800 p-1 ms-2">
       <label for="check-show-skipped" class="ms-1">Skipped</label>
     </div>
     <div class="flex flex-row items-center mb-3">
-      <input v-model="state.filter.testName" type="text" class="border-solid border border-neutral-800 p-1 grow"
+      <input v-model="store.filter.testName" type="text" class="border-solid border border-neutral-800 p-1 grow"
         placeholder="filter">
     </div>
     <div v-if="tests.length > 0">
