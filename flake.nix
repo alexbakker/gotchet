@@ -15,7 +15,7 @@
     in rec {
       packages = flake-utils.lib.flattenTree rec {
         default = gotchet-cli;
-        gotchet-cli = with pkgs; buildGo121Module rec {
+        gotchet-cli = with pkgs; buildGoModule rec {
           pname = "gotchet-cli";
           version = gotchetVersion;
           src = ./.;
@@ -92,7 +92,7 @@
       devShells.default = with pkgs; mkShell {
         hardeningDisable = [ "fortify" ];
         buildInputs = [
-          go_1_21
+          go
 
           nodejs-18_x
           yarn
