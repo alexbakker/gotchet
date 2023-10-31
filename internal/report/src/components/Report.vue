@@ -9,16 +9,16 @@
 
   const stats = computed(() => {
     function getSubTests(t: TestResult): Array<TestResult> {
-      if (Object.keys(t.tests).length == 0) {
-        return [t];
+      if (t.tests.length == 0) {
+        return [t]
       }
-      if (Object.keys(t.tests).length == 1) {
-        return getSubTests(Object.values(t.tests)[0])
+      if (t.tests.length == 1) {
+        return getSubTests(t.tests[0])
       }
 
-      return Object.values(t.tests)
+      return t.tests
     }
-    const shownTests: Array<TestResult> = [];
+    const shownTests: Array<TestResult> = []
     for (const test of tests.value) {
       shownTests.push(...getSubTests(test))
     }
@@ -34,8 +34,7 @@
       return []
     }
 
-    return Object.values(store.testCapture.tests)
-      .sort((t1, t2) => t1.data.index - t2.data.index)
+    return store.testCapture.tests
   })
 
   const totalElapsed = computed(() => {
@@ -43,8 +42,7 @@
       return 0
     }
 
-    return Object.values(store.testCapture.tests)
-      .reduce((sum, t) => sum + t.data.elapsed, 0);
+    return store.testCapture.tests.reduce((sum, t) => sum + t.data.elapsed, 0)
   })
 
   function openJSON() {

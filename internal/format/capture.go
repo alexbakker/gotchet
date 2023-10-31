@@ -13,31 +13,32 @@ import (
 )
 
 type Test struct {
-	Parent    *Test            `json:"-"`
-	Index     int              `json:"index"`
-	StartedAt Time             `json:"started_at"`
-	EndedAt   Time             `json:"ended_at"`
-	FullName  string           `json:"full_name"`
-	Package   string           `json:"package"`
-	Output    []*Output        `json:"output"`
-	Done      bool             `json:"done"`
-	Skipped   bool             `json:"skipped"`
-	Passed    bool             `json:"passed"`
-	Elapsed   time.Duration    `json:"elapsed"`
-	Tests     map[string]*Test `json:"tests"`
+	Parent    *Test         `json:"-"`
+	Index     int           `json:"index"`
+	StartedAt Time          `json:"started_at"`
+	EndedAt   Time          `json:"ended_at"`
+	FullName  string        `json:"full_name"`
+	Package   string        `json:"package"`
+	Output    []*Output     `json:"output"`
+	Done      bool          `json:"done"`
+	Skipped   bool          `json:"skipped"`
+	Passed    bool          `json:"passed"`
+	Elapsed   time.Duration `json:"elapsed"`
+	Tests     []*Test       `json:"tests"`
 }
 
 type TestCapture struct {
-	Tests            map[string]*Test `json:"tests"`
-	Title            string           `json:"title"`
-	StartedAt        Time             `json:"started_at"`
-	EndedAt          Time             `json:"ended_at"`
-	CaptureStartedAt Time             `json:"capture_started_at"`
-	CaptureEndedAt   Time             `json:"capture_ended_at"`
+	Tests            []*Test `json:"tests"`
+	Title            string  `json:"title"`
+	StartedAt        Time    `json:"started_at"`
+	EndedAt          Time    `json:"ended_at"`
+	CaptureStartedAt Time    `json:"capture_started_at"`
+	CaptureEndedAt   Time    `json:"capture_ended_at"`
 	emulate          bool
 	testCount        int
 	outputCount      int
 	ts               Time
+	tests            map[string]*Test
 }
 
 type Output struct {
@@ -80,15 +81,12 @@ func (t *Test) FullOutput() *bytes.Buffer {
 }
 
 func (c *TestCapture) handleEvent(e *TestEvent) error {
-	test := c.Tests[e.Package]
+	test := c.tests[e.Package]
 	if test != nil {
-		for _, name := range splitTestName(e.Test) {
-			if subTest, ok := test.Tests[name]; ok {
-				test = subTest
-				continue
-			}
-
-			break
+		if subTest, ok := c.tests[e.Test]; ok {
+			test = subTest
+		} else if subTest, ok := c.tests[e.ParentTest()]; ok {
+			test = subTest
 		}
 	}
 
@@ -97,7 +95,9 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 		if test != nil {
 			return fmt.Errorf("received second binary start event for: %s", e.Package)
 		}
-		c.Tests[e.Package] = c.newTest(nil, e)
+		test = c.newTest(nil, e)
+		c.tests[e.Package] = test
+		c.Tests = append(c.Tests, test)
 	case TestActionRun:
 		if test == nil {
 			return fmt.Errorf("no parent for test: %s", e.Test)
@@ -107,7 +107,8 @@ func (c *TestCapture) handleEvent(e *TestEvent) error {
 		}
 
 		subTest := c.newTest(test, e)
-		test.Tests[subTest.Name()] = subTest
+		c.tests[subTest.FullName] = subTest
+		test.Tests = append(test.Tests, subTest)
 	case TestActionOutput:
 		if test == nil {
 			return fmt.Errorf("received output event for unstarted test: %s", e.Test)
@@ -162,7 +163,8 @@ func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 		StartedAt: e.Time,
 		FullName:  e.Test,
 		Package:   e.Package,
-		Tests:     make(map[string]*Test),
+		// Explicitly initialize the tests slice to that we never get a nil in the JSON output
+		Tests: make([]*Test, 0),
 	}
 	c.testCount++
 	return
@@ -173,7 +175,9 @@ func (c *TestCapture) newTest(parent *Test, e *TestEvent) (test *Test) {
 func Read(r io.Reader, emulate bool) (*TestCapture, error) {
 	c := TestCapture{
 		CaptureStartedAt: Time(time.Now()),
-		Tests:            make(map[string]*Test),
+		// Explicitly initialize the tests slice to that we never get a nil in the JSON output
+		Tests: make([]*Test, 0),
+		tests: make(map[string]*Test),
 	}
 
 	var lastTs Time

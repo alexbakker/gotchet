@@ -14,11 +14,11 @@ export interface TestResult {
   skipped: boolean
   passed: boolean
   elapsed: number
-  tests: Record<string, TestResult>;
+  tests: Array<TestResult>
 }
 
 export interface TestCapture {
-  tests: Record<string, TestResult>;
+  tests: Array<TestResult>
   title: string
   started_at: string | null
   ended_at: string | null

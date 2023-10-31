@@ -8,13 +8,13 @@ import {
 
 export interface TestResult {
   data: TestResultData
-  tests: Record<string, TestResult>;
+  tests: Array<TestResult>
   collapsed: boolean
 }
 
 export interface TestCapture {
   data: TestCaptureData
-  tests: Record<string, TestResult>;
+  tests: Array<TestResult>
 }
 
 export const useReportStore = defineStore('report', () => {
@@ -32,37 +32,40 @@ export const useReportStore = defineStore('report', () => {
     showSkipped: true
   })
 
-  function wrapTestResults(parentTestResultData: TestResultData | null, testResultsData: Record<string, TestResultData>): Record<string, TestResult> {
-    const tests: Record<string, TestResult> = {}
-    for (const [testName, testResultData] of Object.entries(testResultsData)) {
-      const subTestCount = Object.keys(testResultData.tests).length
+  function wrapTestResults(parentTestResultData: TestResultData | null, testResultsData: Array<TestResultData>): Array<TestResult> {
+    const tests: Array<TestResult> = []
+    for (const testResultData of testResultsData) {
+      const subTestCount = testResultData.tests.length
       const testResult: TestResult = {
         data: testResultData,
-        tests: {},
+        tests: [],
         collapsed: true
       }
-      if (parentTestResultData == null || (Object.keys(parentTestResultData.tests).length == 1 && subTestCount > 0)) {
+      if (parentTestResultData == null || (parentTestResultData.tests.length == 1 && subTestCount > 0)) {
         testResult.collapsed = false
       }
       if (!testResultData.skipped && !testResultData.passed && subTestCount > 0) {
         testResult.collapsed = false
       }
       testResult.tests = wrapTestResults(testResultData, testResultData.tests)
-      tests[testName] = testResult
+      tests.push(testResult)
     }
     return tests
   }
 
   function loadReport() {
     isLoading.value = true
+    const startTime = Date.now()
     readReportData(text => {
       let testCaptureData: TestCaptureData = JSON.parse(text)
       if (testCaptureData) {
         testCapture.value = {
           data: testCaptureData,
           tests: wrapTestResults(null, testCaptureData.tests)
+            .sort((t1, t2) => t1.data.index - t2.data.index)
         }
         isLoading.value = false
+        console.log(`Report load took: ${Date.now() - startTime}ms`)
       }
     })
   }

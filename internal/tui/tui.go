@@ -10,7 +10,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/exp/maps"
 )
 
 var (
@@ -70,9 +69,9 @@ func New(c *format.TestCapture) *Model {
 	}
 	if len(c.Tests) == 1 {
 		// Go deep until there's more than one test
-		test := maps.Values(c.Tests)[0]
+		test := c.Tests[0]
 		for test.Tests != nil && len(test.Tests) == 1 {
-			test = maps.Values(test.Tests)[0]
+			test = test.Tests[0]
 		}
 		m.setCurrentTest(test)
 	}
@@ -87,7 +86,7 @@ func (m *Model) setContent(s string) {
 
 func (m *Model) setCurrentTest(t *format.Test) {
 	m.ct = t
-	m.tests = maps.Values(m.ct.Tests)
+	m.tests = m.ct.Tests
 	slices.SortFunc(m.tests, func(a *format.Test, b *format.Test) int {
 		return a.Index - b.Index
 	})

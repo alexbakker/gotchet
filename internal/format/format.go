@@ -1,6 +1,9 @@
 package format
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Source: https://pkg.go.dev/cmd/test2json
 
@@ -53,4 +56,13 @@ func (t Time) MarshalText() ([]byte, error) {
 
 func (e *TestEvent) Duration() time.Duration {
 	return time.Duration(e.Elapsed * float64(time.Second))
+}
+
+func (e *TestEvent) ParentTest() string {
+	const sep = "/"
+	i := strings.LastIndex(e.Test, sep)
+	if i == -1 {
+		return ""
+	}
+	return e.Test[:i]
 }

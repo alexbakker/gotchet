@@ -24,7 +24,7 @@
   }>()
 
   const hasChildTests = computed(() => {
-    return Object.keys(props.test.tests).length > 0
+    return props.test.tests.length > 0
   })
 
   const state = reactive({
@@ -35,28 +35,13 @@
   const name = computed(() => testName(props.test.data))
 
   const tests = computed(() =>
-    Object.values(props.test.tests)
+    props.test.tests
       .filter((t) => isTestShown(t))
       .sort((t1, t2) => t1.data.index - t2.data.index))
 
   const showLogsToggle = computed(() => {
     return !props.test.collapsed && hasChildTests.value
   })
-
-  /*const fullOutput = computed(() => {
-    const outputs: Array<TestOutput> = Object.assign([], props.test.output)
-
-    const merge = (t: Test) => {
-      for (const test of Object.values(t.tests)) {
-        outputs.push(...test.output)
-        merge(test)
-      }
-    }
-    merge(props.test)
-
-    outputs.sort((o1, o2) => o1.index - o2.index)
-    return outputs
-  })*/
 
   const selfOutput = computed(() => {
     const outputs: Array<TestOutput> = Object.assign([], props.test.data.output)
@@ -92,7 +77,7 @@
   }
 
   async function copyToClipboard() {
-    let log = "";
+    let log = ""
     for (const line of selfOutput.value) {
       log += line.text
     }
@@ -102,7 +87,7 @@
   function testMatchesFilter(t: TestResult): boolean {
     const matches = testName(t.data).toLowerCase().includes(store.filter.testName.toLowerCase())
     if (!matches) {
-      for (const st of Object.values(t.tests)) {
+      for (const st of t.tests) {
         if (testMatchesFilter(st)) {
           return true
         }
@@ -176,6 +161,6 @@
   }
 
   .log-container {
-    background-color: rgb(245, 245, 245)
+    background-color: rgb(245, 245, 245);
   }
 </style>
