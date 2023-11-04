@@ -88,10 +88,19 @@
     <p v-else class="mb-3">Empty report!</p>
     <div class="flex items-start">
       <button @click="openJSON()" class="border-solid border border-neutral-800 rounded p-1">JSON</button>
-      <div class="ms-auto">
-        <p class="text-gray-500" v-if="store.testCapture">Test run started: {{
+      <div class="ms-auto mb-5 text-end text-gray-500">
+        <p class="">
+          <a class="hover:underline" href="https://github.com/alexbakker/gotchet" target="_blank">
+            #[ if ne .GotchetVersion "" ]#
+            #[ .GotchetVersion ]#
+            #[ else ]#
+            gotchet
+            #[ end ]#
+          </a>
+        </p>
+        <p class="" v-if="store.testCapture">Test run started: {{
           store.testCapture.data.started_at }}</p>
-        <p class="text-gray-500 mb-5" v-if="store.testCapture && store.testCapture.data.capture_started_at">Report
+        <p class="" v-if="store.testCapture && store.testCapture.data.capture_started_at">Report
           generated:
           {{ store.testCapture.data.capture_started_at }}</p>
       </div>

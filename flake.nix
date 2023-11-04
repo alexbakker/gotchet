@@ -31,11 +31,11 @@
           '';
 
           ldflags = let 
-            pkgPath = "github.com/alexbakker/gotchet/cmd/gotchet/cmd";
+            pkgPath = "github.com/alexbakker/gotchet/internal/version";
           in [
-            "-X ${pkgPath}.versionNumber=${version}"
-            "-X ${pkgPath}.versionRevision=${self.shortRev or "dirty"}"
-            "-X ${pkgPath}.versionRevisionTime=${toString self.lastModified}"
+            "-X ${pkgPath}.Number=${version}"
+            "-X ${pkgPath}.Revision=${self.shortRev or "dirty"}"
+            "-X ${pkgPath}.RevisionTime=${toString self.lastModified}"
           ];
 
           nativeBuildInputs = [ installShellFiles ];

@@ -2,16 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 
+	"github.com/alexbakker/gotchet/internal/version"
 	"github.com/spf13/cobra"
-)
-
-var (
-	versionNumber       string
-	versionRevision     string
-	versionRevisionTime string
 )
 
 var (
@@ -27,23 +20,16 @@ func init() {
 }
 
 func startVersion(cmd *cobra.Command, args []string) {
-	if versionNumber == "" {
-		exitWithError("no version information")
+	vs, err := version.String()
+	if err != nil {
+		exitWithError(err.Error())
 		return
 	}
 
-	fmt.Printf("gotchet v%s-%s", versionNumber, versionRevision)
-	if ts := parseRevisionTime(versionRevisionTime); ts != "" {
+	fmt.Print(vs)
+	if ts := version.HumanRevisionTime(); ts != "" {
 		fmt.Printf(" (%s)", ts)
 	}
 	fmt.Println()
-}
-
-func parseRevisionTime(s string) string {
-	secs, err := strconv.ParseInt(versionRevisionTime, 10, 64)
-	if err != nil {
-		return ""
-	}
-
-	return time.Unix(secs, 0).UTC().String()
+	fmt.Println("https://github.com/alexbakker/gotchet (GPLv3)")
 }

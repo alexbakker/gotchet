@@ -11,6 +11,7 @@ import (
 	"io"
 
 	"github.com/alexbakker/gotchet/internal/format"
+	"github.com/alexbakker/gotchet/internal/version"
 )
 
 //go:embed dist/index.html
@@ -39,11 +40,14 @@ func Render(c *format.TestCapture, w io.Writer) error {
 	if err := be.Close(); err != nil {
 		return err
 	}
+	version, _ := version.String()
 	return tmpl.Execute(w, struct {
-		Title string
-		Data  template.HTML
+		Title          string
+		GotchetVersion string
+		Data           template.HTML
 	}{
-		Title: c.Title,
-		Data:  template.HTML(buf.String()),
+		Title:          c.Title,
+		GotchetVersion: version,
+		Data:           template.HTML(buf.String()),
 	})
 }
