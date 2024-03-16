@@ -6,11 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: DeterminateSystems/nix-installer-action@3ebd1aebb47f95493b62de6eec0cac3cd74e50a9
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@de22e16c4711fca50c816cc9081563429d1cf563
         with:
           diagnostic-endpoint:
-      - uses: DeterminateSystems/magic-nix-cache-action@749fc5bbc9fa49d60c2b93f6c4bc867b82e1d295
+      - uses: DeterminateSystems/magic-nix-cache-action@fc6aaceb40b9845a02b91e059ec147e78d1b4e41
         with:
           diagnostic-endpoint:
       - name: Build binary
@@ -38,13 +38,13 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Log into Docker Hub
         if: startsWith(github.ref_name, 'v')
-        uses: redhat-actions/podman-login@a7d8d3e6447c1d7ea679172c7d10c7723d49dbf4
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603
         with:
           registry: docker.io
           username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
       - name: Push to Docker Hub
         if: startsWith(github.ref_name, 'v')
-        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c
         with:
           tags: ${{ env.DOCKER_REPO }}:latest ${{ env.DOCKER_REPO }}:${{ steps.tag.outputs.tag }}
