@@ -11,7 +11,7 @@
   flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      gotchetVersion = "0.2.2";
+      gotchetVersion = "0.3.0";
     in rec {
       packages = flake-utils.lib.flattenTree rec {
         default = gotchet-cli;
