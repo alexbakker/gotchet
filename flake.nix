@@ -21,9 +21,9 @@
           src = ./.;
 
           subPackages = ["cmd/gotchet"];
-          vendorSha256 = "sha256-66HJSSugsnnlDJOdiBtqSTnd686PINYFWjVzb7sedlE=";
+          vendorHash = "sha256-66HJSSugsnnlDJOdiBtqSTnd686PINYFWjVzb7sedlE=";
 
-          CGO_ENABLED = 0;
+          env.CGO_ENABLED = 0;
 
           patchPhase = ''
             mkdir -p internal/report/dist
@@ -94,7 +94,7 @@
         buildInputs = [
           go
 
-          nodejs-18_x
+          nodejs_24
           yarn
         ];
       };

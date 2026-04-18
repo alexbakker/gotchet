@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { ClockIcon } from '@heroicons/vue/24/outline'
-  import formatDuration from 'date-fns/formatDuration'
-  import intervalToDuration from 'date-fns/intervalToDuration'
+  import { formatDuration } from 'date-fns/formatDuration'
+  import { intervalToDuration } from 'date-fns/intervalToDuration'
 
   const props = defineProps<{
     elapsed: number | undefined
@@ -21,8 +21,8 @@
     const formatDistanceLocale: Record<string, string>
       = { xSeconds: '{{count}}s', xMinutes: '{{count}}m', xHours: '{{count}}h' }
     const shortEnLocale = {
-      formatDistance: (token: string, count: string) => {
-        return formatDistanceLocale[token].replace('{{count}}', count)
+      formatDistance: (token: string, count: number) => {
+        return formatDistanceLocale[token].replace('{{count}}', String(count))
       }
     }
 
