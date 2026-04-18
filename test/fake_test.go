@@ -26,7 +26,7 @@ func TestGenerateFakeTree(t *testing.T) {
 
 func generateFakeTests(t *testing.T, multiplier int, tree bool) {
 	testCount := faker.IntRange(2*multiplier, 5*multiplier)
-	for i := 0; i < testCount; i++ {
+	for range testCount {
 		t.Run(faker.BuzzWord(), func(t *testing.T) {
 			generateFakeTestOutput(t)
 			if tree && multiplier > 0 && faker.Bool() {
@@ -38,7 +38,7 @@ func generateFakeTests(t *testing.T, multiplier int, tree bool) {
 
 func generateFakeTestOutput(t *testing.T) {
 	lineCount := faker.IntRange(10, 100)
-	for j := 0; j < lineCount; j++ {
+	for range lineCount {
 		words := faker.IntRange(5, 20)
 		fmt.Fprintln(os.Stderr, faker.Sentence(words))
 	}
