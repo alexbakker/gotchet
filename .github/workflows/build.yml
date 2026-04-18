@@ -7,12 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@de22e16c4711fca50c816cc9081563429d1cf563
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
         with:
-          diagnostic-endpoint:
-      - uses: DeterminateSystems/magic-nix-cache-action@fc6aaceb40b9845a02b91e059ec147e78d1b4e41
-        with:
-          diagnostic-endpoint:
+          diagnostic-endpoint: ""
       - name: Build binary
         run: |
           nix build --print-build-logs
